@@ -760,6 +760,239 @@ function wrapSelection(prefix, suffix) {
 	handleEditorInput();
 }
 
+// ========== File-to-Markdown Converter ==========
+// Lazy-loads external libraries on first use to keep initial page load lightweight.
+// Supports: HTML (.html/.htm), CSV (.csv), DOCX (.docx)
+
+// Cache for lazy-loaded script Promises to prevent duplicate loading
+var _scriptCache = {};
+
+// Lazy-load an external script by URL. Returns a Promise that resolves when loaded.
+function loadScript(url) {
+	if (_scriptCache[url]) return _scriptCache[url];
+	_scriptCache[url] = new Promise(function(resolve, reject) {
+		var script = document.createElement('script');
+		script.src = url;
+		script.onload = resolve;
+		script.onerror = function() {
+			delete _scriptCache[url];
+			reject(new Error('Failed to load library: ' + url));
+		};
+		document.head.appendChild(script);
+	});
+	return _scriptCache[url];
+}
+
+// Check whether a filename has a convertible extension
+function isConvertibleFile(filename) {
+	return /\.(html?|csv|docx)$/i.test(filename);
+}
+
+// Get a clean tab name from a convertible filename
+function getConvertTabName(filename) {
+	return filename.replace(/\.(html?|csv|docx)$/i, '') || filename;
+}
+
+// Show the conversion progress overlay
+function showConversionProgress(filename) {
+	var overlay = document.getElementById('convert-progress-modal');
+	var nameEl = document.getElementById('convert-progress-filename');
+	if (nameEl) nameEl.textContent = filename;
+	if (overlay) overlay.classList.add('active');
+}
+
+// Hide the conversion progress overlay
+function hideConversionProgress() {
+	var overlay = document.getElementById('convert-progress-modal');
+	if (overlay) overlay.classList.remove('active');
+}
+
+// Convert an HTML string to markdown using Turndown.js (lazy-loaded)
+function convertHtmlToMarkdown(htmlString) {
+	return loadScript('https://cdn.jsdelivr.net/npm/turndown@7.2.0/dist/turndown.js').then(function() {
+		return loadScript('https://cdn.jsdelivr.net/npm/turndown-plugin-gfm@1.0.2/dist/turndown-plugin-gfm.js');
+	}).then(function() {
+		var turndownService = new TurndownService({
+			headingStyle: 'atx',
+			codeBlockStyle: 'fenced',
+			bulletListMarker: '-'
+		});
+		// Enable GFM extensions (tables, strikethrough, task lists)
+		if (typeof turndownPluginGfm !== 'undefined') {
+			turndownService.use(turndownPluginGfm.gfm);
+		}
+		return turndownService.turndown(htmlString);
+	});
+}
+
+// Convert a CSV string to a GFM markdown table (pure JS, no library needed)
+function convertCsvToMarkdown(csvString) {
+	// Parse CSV handling quoted fields (fields may contain commas and newlines)
+	function parseCsv(text) {
+		var rows = [];
+		var row = [];
+		var field = '';
+		var inQuotes = false;
+		for (var i = 0; i < text.length; i++) {
+			var ch = text[i];
+			var next = text[i + 1];
+			if (inQuotes) {
+				if (ch === '"' && next === '"') {
+					field += '"';
+					i++; // skip escaped quote
+				} else if (ch === '"') {
+					inQuotes = false;
+				} else {
+					field += ch;
+				}
+			} else {
+				if (ch === '"') {
+					inQuotes = true;
+				} else if (ch === ',') {
+					row.push(field.trim());
+					field = '';
+				} else if (ch === '\r' && next === '\n') {
+					row.push(field.trim());
+					field = '';
+					if (row.length > 0) rows.push(row);
+					row = [];
+					i++; // skip \n
+				} else if (ch === '\n') {
+					row.push(field.trim());
+					field = '';
+					if (row.length > 0) rows.push(row);
+					row = [];
+				} else {
+					field += ch;
+				}
+			}
+		}
+		// Push final field/row
+		row.push(field.trim());
+		if (row.length > 0 && !(row.length === 1 && row[0] === '')) rows.push(row);
+		return rows;
+	}
+
+	var rows = parseCsv(csvString);
+	if (rows.length === 0) return Promise.resolve('');
+
+	// Normalise column count to the widest row
+	var maxCols = 0;
+	for (var r = 0; r < rows.length; r++) {
+		if (rows[r].length > maxCols) maxCols = rows[r].length;
+	}
+	for (var r2 = 0; r2 < rows.length; r2++) {
+		while (rows[r2].length < maxCols) rows[r2].push('');
+	}
+
+	// Escape pipe characters inside cell content
+	function escapeCell(val) {
+		return val.replace(/\|/g, '\\|');
+	}
+
+	var lines = [];
+	// Header row
+	lines.push('| ' + rows[0].map(escapeCell).join(' | ') + ' |');
+	// Separator row
+	var sep = [];
+	for (var s = 0; s < maxCols; s++) sep.push('---');
+	lines.push('| ' + sep.join(' | ') + ' |');
+	// Data rows
+	for (var d = 1; d < rows.length; d++) {
+		lines.push('| ' + rows[d].map(escapeCell).join(' | ') + ' |');
+	}
+
+	return Promise.resolve(lines.join('\n'));
+}
+
+// Convert a DOCX ArrayBuffer to markdown via Mammoth.js -> Turndown.js pipeline
+function convertDocxToMarkdown(arrayBuffer) {
+	return loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js').then(function() {
+		return mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+	}).then(function(result) {
+		if (result.messages && result.messages.length > 0) {
+			console.warn('Mammoth conversion warnings:', result.messages);
+		}
+		return convertHtmlToMarkdown(result.value);
+	});
+}
+
+// Main dispatcher: detects file type and routes to appropriate converter
+// Returns a Promise<string> with the markdown result
+function convertFileToMarkdown(file) {
+	var ext = file.name.split('.').pop().toLowerCase();
+
+	if (ext === 'html' || ext === 'htm') {
+		return new Promise(function(resolve, reject) {
+			var reader = new FileReader();
+			reader.onload = function(e) { resolve(e.target.result); };
+			reader.onerror = function() { reject(new Error('Failed to read file')); };
+			reader.readAsText(file);
+		}).then(function(htmlString) {
+			return convertHtmlToMarkdown(htmlString);
+		});
+	}
+
+	if (ext === 'csv') {
+		return new Promise(function(resolve, reject) {
+			var reader = new FileReader();
+			reader.onload = function(e) { resolve(e.target.result); };
+			reader.onerror = function() { reject(new Error('Failed to read file')); };
+			reader.readAsText(file);
+		}).then(function(csvString) {
+			return convertCsvToMarkdown(csvString);
+		});
+	}
+
+	if (ext === 'docx') {
+		return new Promise(function(resolve, reject) {
+			var reader = new FileReader();
+			reader.onload = function(e) { resolve(e.target.result); };
+			reader.onerror = function() { reject(new Error('Failed to read file')); };
+			reader.readAsArrayBuffer(file);
+		}).then(function(arrayBuffer) {
+			return convertDocxToMarkdown(arrayBuffer);
+		});
+	}
+
+	return Promise.reject(new Error('Unsupported file type: .' + ext));
+}
+
+// Handle the "Convert to Markdown" file input change event
+function convertFile(event) {
+	var file = event.target.files[0];
+	if (!file) return;
+	event.target.value = ''; // Reset input so same file can be re-selected
+
+	showConversionProgress(file.name);
+
+	convertFileToMarkdown(file).then(function(markdown) {
+		hideConversionProgress();
+		var tabName = getConvertTabName(file.name);
+		createTab(tabName, markdown);
+		if (editorMode === 'wysiwyg') renderWysiwygView();
+	}).catch(function(err) {
+		hideConversionProgress();
+		console.error('Conversion failed:', err);
+		alert('Conversion failed: ' + (err.message || 'Unknown error'));
+	});
+}
+
+// Helper: handle a dropped convertible file (used by both editor and WYSIWYG drop handlers)
+function handleConvertibleDrop(file) {
+	showConversionProgress(file.name);
+	convertFileToMarkdown(file).then(function(markdown) {
+		hideConversionProgress();
+		var tabName = getConvertTabName(file.name);
+		createTab(tabName, markdown);
+		if (editorMode === 'wysiwyg') renderWysiwygView();
+	}).catch(function(err) {
+		hideConversionProgress();
+		console.error('Conversion failed:', err);
+		alert('Conversion failed: ' + (err.message || 'Unknown error'));
+	});
+}
+
 // Import file: update active tab name to filename
 function importFile(event) {
 	var file = event.target.files[0];
@@ -808,6 +1041,12 @@ editorEl.addEventListener('drop', function(e) {
 				handleEditorInput();
 			};
 			imgReader.readAsDataURL(file);
+			return;
+		}
+
+		// Handle convertible files (HTML, CSV, DOCX) — auto-detect and convert
+		if (isConvertibleFile(file.name)) {
+			handleConvertibleDrop(file);
 			return;
 		}
 
@@ -2006,6 +2245,9 @@ wysiwygContainerEl.addEventListener('drop', function(e) {
 				renderWysiwygView();
 			};
 			imgReader.readAsDataURL(file);
+		} else if (isConvertibleFile(file.name)) {
+			// Handle convertible files (HTML, CSV, DOCX) — auto-detect and convert
+			handleConvertibleDrop(file);
 		} else {
 			var reader = new FileReader();
 			reader.onload = function(ev) {

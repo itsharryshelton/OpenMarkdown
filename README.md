@@ -22,6 +22,8 @@ Great for non-technical stakeholders who need to open markdown files but don't h
 - **Dark / light theme** - persists in localStorage
 - **Auto-save & Tabs** - editor content preserved across page reloads via localStorage; up to 10 tabs supported
 - **File import** - drag-and-drop or file picker to load `.md` files
+- **File-to-Markdown conversion** - upload `.html`, `.csv`, or `.docx` files and convert them to Markdown entirely client-side. 
+  - External libraries (Turndown.js, Mammoth.js) are lazy-loaded on first use
 - **Document stats** - live word count, character count, and reading time estimate
 - **Security** - XSS protection via DOMPurify, Content Security Policy, and optional JWT validation
 
@@ -49,6 +51,8 @@ To enable protection:
 | Markdown | marked.js v12 (CDN) |
 | Diagrams | Mermaid v10 (CDN) |
 | Security | DOMPurify v3 (CDN) |
+| HTML-to-Markdown | Turndown.js v7 + GFM plugin (CDN, lazy-loaded) |
+| DOCX-to-HTML | Mammoth.js v1.8 (CDN, lazy-loaded) |
 | Auth | Optional Cloudflare Access JWT (RS256, JWKS) |
 
 A decoupled SPA: The static frontend (HTML/CSS/JS) is served by Cloudflare Workers Assets (`/public/`), dynamic requests route through the main Worker API (`/api/*`).
