@@ -6,6 +6,9 @@ Great for non-technical stakeholders who need to open markdown files but don't h
 
 > **No user modified markdown or files exist on a server**, only on Browser localStorage; this means it will appear when the user closes the tab or browser; but clearing the cache will wipe it. This tool is not designed for storing long-term markdown files.
 
+<img width="2560" height="1279" alt="image" src="https://github.com/user-attachments/assets/b3a35d9d-03c0-4053-9ffe-72e9b06d541f" />
+
+
 ## Features
 
 - **Live preview** - WYSIWYG or Side-by-Side view for editor and rendered output, updates as you type
@@ -19,6 +22,9 @@ Great for non-technical stakeholders who need to open markdown files but don't h
 - **File import** - drag-and-drop or file picker to load `.md` files
 - **Document stats** - live word count, character count, and reading time estimate
 - **Security** - XSS protection via DOMPurify, Content Security Policy, and optional JWT validation
+
+<img width="2560" height="1279" alt="image" src="https://github.com/user-attachments/assets/45f9875e-47e4-4d54-9d2c-372bbaac975a" />
+
 
 ## Authentication & Security
 
@@ -61,6 +67,9 @@ To add or modify built-in document templates:
    }
    ```
 5. Run the dev server or deploy; the template will appear instantly in the "Import Template" modal.
+
+<img width="711" height="691" alt="image" src="https://github.com/user-attachments/assets/3d149ec0-9b7c-46c1-a7e1-14c66508db47" />
+
 
 ## Local Development
 
