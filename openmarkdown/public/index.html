@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>OpenMarkdown - Markdown and Mermaid Visualiser</title>
+	<link rel="icon" href="data:," />
+
+	<!-- Premium Fonts -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap"
+		rel="stylesheet">
+
+	<!-- Pre-loading Theme Script to prevent flash of light mode -->
+	<script>
+		(function () {
+			const savedTheme = localStorage.getItem('colour-scheme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		})();
+	</script>
+
+	<!-- External Libraries via CDN -->
+	<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/lib/marked.umd.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.5/dist/purify.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css" media="(prefers-color-scheme: light)" id="hljs-light">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css" media="(prefers-color-scheme: dark)" id="hljs-dark">
+
+	<!-- Decoupled Styles -->
+	<link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+
+	<!-- Top Navigation Bar -->
+	<header class="top-bar">
+		<div class="brand">
+			<svg class="brand-logo" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+				xmlns="http://www.w3.org/2000/svg">
+				<path stroke-linecap="round" stroke-linejoin="round"
+					d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z">
+				</path>
+			</svg>
+			<h1>OpenMarkdown</h1>
+		</div>
+
+		<nav class="menu-bar" id="menu-bar">
+			<div class="menu-item" id="menu-file">
+				<button class="menu-trigger" onclick="toggleMenu('menu-file')">File</button>
+				<div class="menu-dropdown">
+					<button class="menu-option" onclick="closeMenus(); clearDocument();">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z">
+							</path>
+						</svg>
+						<span>Clear File</span>
+					</button>
+					<button class="menu-option" onclick="closeMenus(); toggleTemplates();">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H6a2.25 2.25 0 00-2.25 2.25v7.5A2.25 2.25 0 006 19.5h2.25m7.5 0v-1.875a3.375 3.375 0 00-3.375-3.375h-.5M15.75 18.75h2.25a2.25 2.25 0 002.25-2.25M15.75 18.75a48.12 48.12 0 01-7.5 0">
+							</path>
+						</svg>
+						<span>Import Template</span>
+					</button>
+					<button class="menu-option" onclick="closeMenus(); document.getElementById('file-input').click();">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5">
+							</path>
+						</svg>
+						<span>Upload File</span>
+					</button>
+					<div class="menu-divider"></div>
+					<button class="menu-option" onclick="closeMenus(); exportMarkdown();">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3">
+							</path>
+						</svg>
+						<span>Download File</span>
+					</button>
+					<button class="menu-option" onclick="closeMenus(); menuExportPdf();">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0a2.25 2.25 0 01-2.25 2.25H8.59a2.25 2.25 0 01-2.25-2.25M17.66 18l.22-2.25H6.12L6.34 18">
+							</path>
+						</svg>
+						<span>Export to PDF</span>
+					</button>
+					<div class="menu-divider"></div>
+					<button class="menu-option"
+						onclick="closeMenus(); document.getElementById('save-info-modal').classList.add('active');">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12">
+							</path>
+						</svg>
+						<span>Save</span>
+					</button>
+					<div class="menu-divider"></div>
+					<button class="menu-option menu-option-danger" onclick="closeMenus(); document.getElementById('clear-cache-modal').classList.add('active');">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0">
+							</path>
+						</svg>
+						<span>Clear Cache</span>
+					</button>
+				</div>
+			</div>
+
+			<div class="menu-item" id="menu-view">
+				<button class="menu-trigger" onclick="toggleMenu('menu-view')">View</button>
+				<div class="menu-dropdown">
+					<button class="menu-option" id="menu-opt-visual"
+						onclick="closeMenus(); if(editorMode!=='wysiwyg') toggleEditorMode();">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z">
+							</path>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+							</path>
+						</svg>
+						<span>Visual Editor</span>
+						<span class="menu-check" id="menu-check-visual">&#10003;</span>
+					</button>
+					<button class="menu-option" id="menu-opt-raw"
+						onclick="closeMenus(); if(editorMode!=='raw') toggleEditorMode();">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"></path>
+						</svg>
+						<span>Raw Markdown</span>
+						<span class="menu-check" id="menu-check-raw" style="display:none;">&#10003;</span>
+					</button>
+					<div class="menu-divider"></div>
+					<div class="menu-sublabel">Raw Layout</div>
+					<button class="menu-option menu-layout-opt" data-layout="split"
+						onclick="closeMenus(); if(editorMode==='wysiwyg') toggleEditorMode(); setLayoutMode('split');">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M9 4.5v15m6-15v15M3.75 4.5h16.5v15H3.75z"></path>
+						</svg>
+						<span>Side by Side</span>
+					</button>
+					<button class="menu-option menu-layout-opt" data-layout="editor"
+						onclick="closeMenus(); if(editorMode==='wysiwyg') toggleEditorMode(); setLayoutMode('editor');">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5h16.5v15H3.75z"></path>
+							<path stroke-linecap="round" d="M7 8h10M7 11h7M7 14h9"></path>
+						</svg>
+						<span>Editor Only</span>
+					</button>
+					<button class="menu-option menu-layout-opt" data-layout="preview"
+						onclick="closeMenus(); if(editorMode==='wysiwyg') toggleEditorMode(); setLayoutMode('preview');">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z">
+							</path>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+							</path>
+						</svg>
+						<span>Preview Only</span>
+					</button>
+					<div class="menu-divider"></div>
+					<button class="menu-option" onclick="closeMenus(); toggleTheme();">
+						<svg id="menu-theme-icon-dark" fill="none" stroke="currentColor" stroke-width="2"
+							viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z">
+							</path>
+						</svg>
+						<svg id="menu-theme-icon-light" style="display:none;" fill="none" stroke="currentColor"
+							stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z">
+							</path>
+						</svg>
+						<span id="menu-theme-text">Dark Mode</span>
+					</button>
+					<button class="menu-option" onclick="closeMenus(); toggleSpellCheck();">
+						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+						</svg>
+						<span>Spell Check</span>
+						<span class="menu-check" id="menu-check-spellcheck" style="display:none;">&#10003;</span>
+					</button>
+				</div>
+			</div>
+
+			<div class="menu-item" id="menu-help">
+				<button class="menu-trigger" onclick="closeMenus(); toggleHelp();">Help</button>
+			</div>
+		</nav>
+
+		<input type="file" id="file-input" class="hidden-input" accept=".md,.markdown,.txt,.mmd"
+			onchange="importFile(event)">
+	</header>
+
+	<!-- Tab Bar -->
+	<div class="tab-bar" id="tab-bar"></div>
+
+	<!-- Main Workspace -->
+	<main class="workspace" id="workspace">
+		<!-- WYSIWYG Visual Editor Pane (default view) -->
+		<section class="wysiwyg-pane" id="wysiwyg-pane">
+			<div class="pane-header">
+				<span>Visual Editor <span class="shortcut-hint">Click any block to edit</span></span>
+				<span id="wysiwyg-doc-counter">0 Words / 0 Characters</span>
+			</div>
+			<div class="editor-toolbar" id="wysiwyg-toolbar">
+				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
+					onclick="wysiwygInsertBlock('# Heading')" title="Heading 1">H1</button>
+				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
+					onclick="wysiwygInsertBlock('## Heading')" title="Heading 2">H2</button>
+				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
+					onclick="wysiwygInsertBlock('### Heading')" title="Heading 3">H3</button>
+				<div class="toolbar-divider"></div>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygWrap('**', '**')"
+					title="Bold">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path d="M6 4h8a4 4 0 010 8H6zm0 8h9a4 4 0 010 8H6z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygWrap('*', '*')"
+					title="Italic">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M10 4h4m2 0h-2M14 4l-4 16m-4 0h4m-2 0h-2" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygWrap('~~', '~~')" title="Strikethrough">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 12h8m-16 0h4m1-4c0-2.21 1.567-4 3.5-4 1.933 0 3.5 1.79 3.5 4m-7 8c0 2.21 1.567 4 3.5 4 1.933 0 3.5-1.79 3.5-4" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertLink()" title="Link">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('![Alt text](https://static.vecteezy.com/system/resources/thumbnails/019/552/573/small/illustration-of-duck-animals-bird-drawing-vector.jpg)')" title="Insert Image">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('----')" title="Line Break / Page Break">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5" />
+					</svg>
+				</button>
+				<div class="toolbar-divider"></div>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('> Blockquote')" title="Blockquote">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('```\ncode here\n```')" title="Code Block">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('- [ ] Task item')" title="Task List / Checkbox">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();"
+					onclick="wysiwygInsertBlock('- List item')" title="Bullet List">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();"
+					onclick="wysiwygInsertBlock('1. List item')" title="Numbered List">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M8.242 5.992h12m-12 6.003h12m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 111.591 1.59l-1.83 1.83h2.16" />
+					</svg>
+				</button>
+				<div class="toolbar-divider"></div>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();"
+					onclick="showTablePicker(this, 'wysiwyg')" title="Insert Table">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18v18H3V3z" />
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();"
+					onclick="showCalloutPicker(this, 'wysiwyg')" title="Insert Callout">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();"
+					onclick="wysiwygInsertBlock('```mermaid\ngraph TD\n  A[Start] --> B[End]\n```')"
+					title="Insert Diagram">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+					</svg>
+				</button>
+			</div>
+			<div class="wysiwyg-container" id="wysiwyg-container">
+				<div class="wysiwyg-body markdown-body" id="wysiwyg-body">
+					<div class="wysiwyg-placeholder" id="wysiwyg-placeholder" onclick="startNewBlock()">
+						<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"
+							style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.4;">
+							<path stroke-linecap="round" stroke-linejoin="round"
+								d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z">
+							</path>
+						</svg>
+						<p>Click here to start writing, or drag and drop a .md file</p>
+						<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;">You can also paste markdown or use
+							the toolbar above</p>
+						<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;">Switch between RAW and Visual Editor
+							at the top</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Left Panel: Raw Monospace Editor (hidden by default in WYSIWYG mode) -->
+		<section class="pane editor-pane" id="editor-pane" style="display: none;">
+			<div class="pane-header">
+				<span>Markdown Editor <span class="shortcut-hint">Ctrl+B Bold / Ctrl+I Italic / Ctrl+K
+						Link</span></span>
+				<span id="doc-counter">0 Words / 0 Characters</span>
+			</div>
+			<div class="editor-toolbar">
+				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
+					onclick="insertSnippet('custom', '# Heading')" title="Heading 1">H1</button>
+				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
+					onclick="insertSnippet('custom', '## Heading')" title="Heading 2">H2</button>
+				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
+					onclick="insertSnippet('custom', '### Heading')" title="Heading 3">H3</button>
+				<div class="toolbar-divider"></div>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wrapSelection('**', '**')"
+					title="Bold">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path d="M6 4h8a4 4 0 010 8H6zm0 8h9a4 4 0 010 8H6z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wrapSelection('*', '*')"
+					title="Italic">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M10 4h4m2 0h-2M14 4l-4 16m-4 0h4m-2 0h-2" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertLink()" title="Link">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wrapSelection('~~', '~~')" title="Strikethrough">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 12h8m-16 0h4m1-4c0-2.21 1.567-4 3.5-4 1.933 0 3.5 1.79 3.5 4m-7 8c0 2.21 1.567 4 3.5 4 1.933 0 3.5-1.79 3.5-4" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '![Alt text](https://via.placeholder.com/600x300)')" title="Insert Image">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '----')" title="Line Break / Page Break">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5" />
+					</svg>
+				</button>
+				<div class="toolbar-divider"></div>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '> Blockquote')" title="Blockquote">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '```\ncode here\n```')" title="Code Block">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '- [ ] Task item')" title="Task List / Checkbox">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertListPrefix('- ')"
+					title="Bullet List">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertListPrefix('1. ')"
+					title="Numbered List">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M8.242 5.992h12m-12 6.003h12m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 111.591 1.59l-1.83 1.83h2.16" />
+					</svg>
+				</button>
+				<div class="toolbar-divider"></div>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="showTablePicker(this, 'raw')"
+					title="Insert Table">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18v18H3V3z" />
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();"
+					onclick="showCalloutPicker(this, 'raw')" title="Insert Callout">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+					</svg>
+				</button>
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('diagram')"
+					title="Insert Diagram">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+					</svg>
+				</button>
+			</div>
+			<div class="editor-container">
+				<textarea class="markdown-textarea" id="editor" spellcheck="false"
+					placeholder="Write your markdown document here... (or drag and drop a .md file)"></textarea>
+			</div>
+		</section>
+
+		<!-- Right Panel: Visualisation Output (hidden by default in WYSIWYG mode) -->
+		<section class="pane preview-pane" id="preview-pane" style="display: none;">
+			<div class="pane-header">
+				<span>Markdown Visualise</span>
+			</div>
+			<div class="preview-container">
+				<article class="markdown-body" id="preview"></article>
+			</div>
+		</section>
+	</main>
+
+	<!-- Help Modal -->
+	<div class="modal-overlay" id="help-modal" onclick="closeHelpOnBackdrop(event)">
+		<div class="modal">
+			<div class="modal-header">
+				<h2>How to Use This Tool</h2>
+				<button class="modal-close" onclick="toggleHelp()" title="Close">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="modal-body">
+				<h3>What is this tool?</h3>
+				<p>This is a document editor that lets you write in <strong>Markdown</strong> (a simple text formatting
+					language) and instantly see a clean, formatted preview. You can also draw diagrams using
+					<strong>Mermaid</strong> syntax. When you are finished, export your document as a professional PDF
+					to share with colleagues or stakeholders.
+				</p>
+
+				<div class="help-divider"></div>
+
+				<h3>Getting Started</h3>
+				<p>Type in the left-hand panel (the Editor). The right-hand panel (the Visualiser) updates automatically
+					to show you what your finished document looks like. Your work is automatically saved in your
+					browser.</p>
+
+				<div class="help-divider"></div>
+
+				<h3>Basic Formatting</h3>
+				<p>Markdown uses simple symbols to format text. Here are the most common ones:</p>
+				<table class="help-table">
+					<thead>
+						<tr>
+							<th>What You Type</th>
+							<th>What It Produces</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code># Heading 1</code></td>
+							<td>A large heading</td>
+						</tr>
+						<tr>
+							<td><code>## Heading 2</code></td>
+							<td>A medium heading</td>
+						</tr>
+						<tr>
+							<td><code>### Heading 3</code></td>
+							<td>A small heading</td>
+						</tr>
+						<tr>
+							<td><code>**bold text**</code></td>
+							<td><strong>bold text</strong></td>
+						</tr>
+						<tr>
+							<td><code>*italic text*</code></td>
+							<td><em>italic text</em></td>
+						</tr>
+						<tr>
+							<td><code>[Link Text](https://example.com)</code></td>
+							<td>A clickable link</td>
+						</tr>
+						<tr>
+							<td><code>- Item one</code></td>
+							<td>A bullet point list</td>
+						</tr>
+						<tr>
+							<td><code>1. Item one</code></td>
+							<td>A numbered list</td>
+						</tr>
+						<tr>
+							<td><code>> Quote text</code></td>
+							<td>A block quote</td>
+						</tr>
+						<tr>
+							<td><code>---</code></td>
+							<td>A horizontal line divider</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="help-divider"></div>
+
+				<h3>Tables</h3>
+				<p>Create tables using pipes (<code>|</code>) and hyphens (<code>-</code>):</p>
+				<table class="help-table">
+					<thead>
+						<tr>
+							<th>What You Type</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>| Name | Role |</code><br><code>|------|------|</code><br><code>| Alice | Engineer |</code><br><code>| Bob | Manager |</code>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="help-divider"></div>
+
+				<h3>Diagrams (Mermaid)</h3>
+				<p>You can add flowcharts, sequence diagrams, and more using Mermaid syntax. Wrap your diagram code in a
+					fenced code block with the language set to <code>mermaid</code>:</p>
+				<table class="help-table">
+					<thead>
+						<tr>
+							<th>What You Type</th>
+							<th>What It Produces</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>&#96;&#96;&#96;mermaid</code><br><code>graph TD</code><br><code>&nbsp;&nbsp;A[Start] --> B[End]</code><br><code>&#96;&#96;&#96;</code>
+							</td>
+							<td>A flowchart with boxes and arrows</td>
+						</tr>
+						<tr>
+							<td><code>&#96;&#96;&#96;mermaid</code><br><code>sequenceDiagram</code><br><code>&nbsp;&nbsp;Alice->>Bob: Hello</code><br><code>&#96;&#96;&#96;</code>
+							</td>
+							<td>A sequence diagram showing interactions</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="help-divider"></div>
+
+				<h3>Admonitions / Callouts</h3>
+				<p>Callouts are highlighted boxes used to draw attention to important information. They use a blockquote
+					with a special type marker on the first line.</p>
+				<table class="help-table">
+					<thead>
+						<tr>
+							<th>What You Type</th>
+							<th>What It Produces</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>&gt;[!note]</code><br><code>&gt;Your message here.</code></td>
+							<td>A blue "Note" callout box with an icon</td>
+						</tr>
+						<tr>
+							<td><code>&gt;[!warning]</code><br><code>&gt;Be careful with this.</code></td>
+							<td>An orange "Warning" callout box</td>
+						</tr>
+						<tr>
+							<td><code>&gt;[!info] Custom Title</code><br><code>&gt;Body text here.</code></td>
+							<td>A callout with a custom heading instead of the default type name</td>
+						</tr>
+						<tr>
+							<td><code>&gt;[!tip]+ Click to collapse</code><br><code>&gt;This starts open.</code></td>
+							<td>A foldable callout that starts <strong>expanded</strong> (user can collapse it)</td>
+						</tr>
+						<tr>
+							<td><code>&gt;[!warning]- Click to expand</code><br><code>&gt;This starts closed.</code>
+							</td>
+							<td>A foldable callout that starts <strong>collapsed</strong> (user can expand it)</td>
+						</tr>
+					</tbody>
+				</table>
+				<p>Available callout types:</p>
+				<table class="help-table">
+					<thead>
+						<tr>
+							<th>Type</th>
+							<th>Colour</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>note</code></td>
+							<td style="color:#448aff;">Blue</td>
+						</tr>
+						<tr>
+							<td><code>abstract</code></td>
+							<td style="color:#00bcd4;">Cyan</td>
+						</tr>
+						<tr>
+							<td><code>info</code>, <code>todo</code></td>
+							<td style="color:#2196f3;">Blue</td>
+						</tr>
+						<tr>
+							<td><code>tip</code></td>
+							<td style="color:#00bfa5;">Teal</td>
+						</tr>
+						<tr>
+							<td><code>success</code></td>
+							<td style="color:#4caf50;">Green</td>
+						</tr>
+						<tr>
+							<td><code>question</code></td>
+							<td style="color:#ff9800;">Amber</td>
+						</tr>
+						<tr>
+							<td><code>warning</code></td>
+							<td style="color:#ff9100;">Orange</td>
+						</tr>
+						<tr>
+							<td><code>failure</code>, <code>danger</code>, <code>bug</code></td>
+							<td style="color:#f44336;">Red</td>
+						</tr>
+						<tr>
+							<td><code>example</code></td>
+							<td style="color:#7c4dff;">Purple</td>
+						</tr>
+						<tr>
+							<td><code>quote</code></td>
+							<td style="color:#9e9e9e;">Grey</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="help-divider"></div>
+
+				<h3>Keyboard Shortcuts</h3>
+				<table class="help-table">
+					<thead>
+						<tr>
+							<th>Shortcut</th>
+							<th>Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>Ctrl + B</code></td>
+							<td>Make selected text <strong>bold</strong></td>
+						</tr>
+						<tr>
+							<td><code>Ctrl + I</code></td>
+							<td>Make selected text <em>italic</em></td>
+						</tr>
+						<tr>
+							<td><code>Ctrl + K</code></td>
+							<td>Insert a link around selected text</td>
+						</tr>
+						<tr>
+							<td><code>Ctrl + P</code></td>
+							<td>Export to PDF</td>
+						</tr>
+						<tr>
+							<td><code>Tab</code></td>
+							<td>Insert indentation (useful for lists and diagrams)</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="help-divider"></div>
+
+				<h3>Toolbar Buttons</h3>
+				<table class="help-table">
+					<thead>
+						<tr>
+							<th>Button</th>
+							<th>What It Does</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>New Document</td>
+							<td>Clears the active tab's editor content</td>
+						</tr>
+						<tr>
+							<td>Import File</td>
+							<td>Load an existing <code>.md</code> or text file into the active tab</td>
+						</tr>
+						<tr>
+							<td>Layout Selector</td>
+							<td>Switch between side-by-side, editor-only, or preview-only views</td>
+						</tr>
+						<tr>
+							<td>Dark / Light Mode</td>
+							<td>Switches between a light and dark colour scheme</td>
+						</tr>
+						<tr>
+							<td>Export to PDF</td>
+							<td>Opens your browser's print dialogue so you can save or print the document as a PDF</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="help-divider"></div>
+
+				<h3>Tabs</h3>
+				<table class="help-table">
+					<thead>
+						<tr>
+							<th>Action</th>
+							<th>How</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>New tab</td>
+							<td>Click the <code>+</code> button in the tab bar</td>
+						</tr>
+						<tr>
+							<td>Switch tab</td>
+							<td>Click on any tab</td>
+						</tr>
+						<tr>
+							<td>Rename tab</td>
+							<td>Double-click on a tab name</td>
+						</tr>
+						<tr>
+							<td>Close tab</td>
+							<td>Click the <code>x</code> on a tab (hover to reveal)</td>
+						</tr>
+					</tbody>
+				</table>
+				<p>All tabs are saved automatically in your browser. You can have up to 10 tabs open at once.</p>
+
+				<div class="help-divider"></div>
+
+				<h3>Tips</h3>
+				<p>You can also drag and drop a <code>.md</code> file directly onto the editor area to import it. When
+					loading a template, you can choose to open it in a new tab or replace the active tab's content.</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Template Picker Modal -->
+	<div class="modal-overlay" id="template-modal" onclick="closeTemplatesOnBackdrop(event)">
+		<div class="modal">
+			<div class="modal-header">
+				<h2>Choose a Template</h2>
+				<button class="modal-close" onclick="toggleTemplates()" title="Close">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p>Select a template below to load it into the editor. This will replace your current document.</p>
+				<div class="template-grid" id="template-list">
+					<p style="color: var(--text-muted);">Loading templates...</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Load Mode Modal (New Tab or Replace) -->
+	<div class="load-mode-overlay" id="load-mode-modal" onclick="if(event.target===this)closeLoadMode()">
+		<div class="load-mode-box">
+			<h3>Load Template</h3>
+			<p id="load-mode-desc">How would you like to load this template?</p>
+			<div class="load-mode-actions">
+				<button class="btn btn-primary" id="load-mode-new" onclick="doLoadTemplate('new')">Open in New
+					Tab</button>
+				<button class="btn" id="load-mode-replace" onclick="doLoadTemplate('replace')">Replace Current</button>
+				<button class="btn" onclick="closeLoadMode()">Cancel</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Print Tip Modal -->
+	<div class="load-mode-overlay" id="print-tip-modal"
+		onclick="if(event.target===this)this.classList.remove('active')">
+		<div class="load-mode-box" style="max-width: 400px;">
+			<h3>PDF Export Tip</h3>
+			<p style="margin-bottom: 16px;">For the cleanest, most professional PDF exports (especially in Firefox),
+				please expand <strong>More Settings</strong> in the print dialogue and <strong>uncheck "Print Headers
+					and Footers"</strong>.</p>
+			<div class="load-mode-actions">
+				<button class="btn btn-primary"
+					onclick="document.getElementById('print-tip-modal').classList.remove('active')">Got it!</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Save Info Modal -->
+	<div class="load-mode-overlay" id="save-info-modal"
+		onclick="if(event.target===this)this.classList.remove('active')">
+		<div class="load-mode-box" style="max-width: 440px; text-align: left;">
+			<h3 style="text-align: center;">How Saving Works</h3>
+			<p style="margin-bottom: 12px;"><strong>Your data is private.</strong> Nothing you type here is ever sent to
+				or stored on our servers.</p>
+			<p style="margin-bottom: 12px;">Instead, your documents are automatically saved directly into your browser's
+				local cache (localStorage). This means if you accidentally close the tab or refresh the page, your work
+				will still be here when you return.</p>
+			<p style="margin-bottom: 20px;"><strong>However, to permanently save or share a document</strong>, you must
+				export it. You can either export the raw `.md` text file or export it as a formatted PDF using the
+				buttons in the top right.</p>
+			<div class="load-mode-actions">
+				<button class="btn btn-primary"
+					onclick="document.getElementById('save-info-modal').classList.remove('active')"
+					style="width: 100%;">Understood</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Clear Cache Confirmation Modal -->
+	<div class="load-mode-overlay" id="clear-cache-modal"
+		onclick="if(event.target===this)this.classList.remove('active')">
+		<div class="load-mode-box" style="max-width: 440px; text-align: left;">
+			<h3 style="text-align: center; color: #ef4444;">Clear All Saved Data</h3>
+			<p style="margin-bottom: 12px;">This will <strong>permanently delete</strong> all your saved documents, tabs,
+				theme preferences, and editor settings from this browser.</p>
+			<p style="margin-bottom: 12px;">After clearing, the application will reload as if you are visiting for the
+				first time. <strong>This cannot be undone.</strong></p>
+			<p style="margin-bottom: 20px;">If you have unsaved work, please download your files first using
+				<strong>File > Download File</strong> or <strong>Export to PDF</strong> before proceeding.</p>
+			<div class="load-mode-actions" style="gap: 8px;">
+				<button class="btn" style="flex: 1;"
+					onclick="document.getElementById('clear-cache-modal').classList.remove('active')">Cancel</button>
+				<button class="btn" style="flex: 1; background: #ef4444; color: #ffffff; border-color: #ef4444;"
+					onclick="clearAllCache()">Clear Everything</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Find & Replace Bar -->
+	<div class="find-bar" id="find-bar">
+		<div class="find-bar-row">
+			<input type="text" id="find-input" class="find-input" placeholder="Find..." spellcheck="false" autocomplete="off">
+			<span class="find-count" id="find-count">0 / 0</span>
+			<button class="find-btn" id="find-prev" onclick="findPrev()" title="Previous (Shift+Enter)">
+				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg>
+			</button>
+			<button class="find-btn" id="find-next" onclick="findNext()" title="Next (Enter)">
+				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+			</button>
+			<button class="find-btn find-btn-toggle" id="find-case-btn" onclick="toggleFindCase()" title="Match Case">Aa</button>
+			<button class="find-btn find-btn-toggle" id="find-replace-toggle" onclick="toggleReplaceRow()" title="Toggle Replace">
+				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+			</button>
+			<button class="find-btn" onclick="closeFindBar()" title="Close (Escape)">
+				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+			</button>
+		</div>
+		<div class="find-bar-row find-replace-row" id="find-replace-row" style="display:none;">
+			<input type="text" id="replace-input" class="find-input" placeholder="Replace with..." spellcheck="false" autocomplete="off">
+			<button class="find-btn find-btn-action" onclick="replaceOne()" title="Replace">Replace</button>
+			<button class="find-btn find-btn-action" onclick="replaceAll()" title="Replace All">All</button>
+		</div>
+	</div>
+
+	<!-- Editor Context Menu -->
+	<div class="context-menu" id="context-menu">
+		<div class="context-menu-item" onclick="ctxCut()">
+			<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+				<circle cx="6" cy="6" r="3" />
+				<circle cx="6" cy="18" r="3" />
+				<line x1="20" y1="4" x2="8.12" y2="15.88" />
+				<line x1="14.47" y1="14.48" x2="20" y2="20" />
+				<line x1="8.12" y1="8.12" x2="12" y2="12" />
+			</svg>
+			<span class="ctx-label">Cut</span>
+			<span class="ctx-shortcut">Ctrl+X</span>
+		</div>
+		<div class="context-menu-item" onclick="ctxCopy()">
+			<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+				<rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+				<path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+			</svg>
+			<span class="ctx-label">Copy</span>
+			<span class="ctx-shortcut">Ctrl+C</span>
+		</div>
+		<div class="context-menu-item" onclick="ctxPaste()">
+			<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+				<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
+				<rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+			</svg>
+			<span class="ctx-label">Paste</span>
+			<span class="ctx-shortcut">Ctrl+V</span>
+		</div>
+		<div class="context-menu-separator"></div>
+		<div class="context-menu-item" onclick="ctxLink()">
+			<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round"
+					d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+			</svg>
+			<span class="ctx-label">Create Link</span>
+			<span class="ctx-shortcut">Ctrl+K</span>
+		</div>
+		<div class="context-menu-separator"></div>
+		<div class="context-menu-submenu">
+			<div class="context-menu-item">
+				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M4 7V4h16v3M9 20h6M12 4v16" />
+				</svg>
+				<span class="ctx-label">Format</span>
+				<span class="ctx-arrow">&#9654;</span>
+			</div>
+			<div class="context-submenu" id="ctx-submenu-format">
+				<div class="context-menu-item" onclick="ctxBold()">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path d="M6 4h8a4 4 0 010 8H6zm0 8h9a4 4 0 010 8H6z" />
+					</svg>
+					<span class="ctx-label">Bold</span>
+					<span class="ctx-shortcut">Ctrl+B</span>
+				</div>
+				<div class="context-menu-item" onclick="ctxItalic()">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M10 4h4m2 0h-2M14 4l-4 16m-4 0h4m-2 0h-2" />
+					</svg>
+					<span class="ctx-label">Italic</span>
+					<span class="ctx-shortcut">Ctrl+I</span>
+				</div>
+			</div>
+		</div>
+		<div class="context-menu-submenu">
+			<div class="context-menu-item">
+				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round"
+						d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+				</svg>
+				<span class="ctx-label">Paragraph</span>
+				<span class="ctx-arrow">&#9654;</span>
+			</div>
+			<div class="context-submenu" id="ctx-submenu-paragraph">
+				<div class="context-menu-item" onclick="ctxBulletList()">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+					</svg>
+					<span class="ctx-label">Bullet List</span>
+				</div>
+				<div class="context-menu-item" onclick="ctxNumberedList()">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M8.242 5.992h12m-12 6.003h12m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 111.591 1.59l-1.83 1.83h2.16" />
+					</svg>
+					<span class="ctx-label">Numbered List</span>
+				</div>
+				<div class="context-menu-item" onclick="ctxTaskList()">
+					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round"
+							d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+					<span class="ctx-label">Task List</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Decoupled JavaScript Logic -->
+	<script src="/app.js"></script>
+</body>
+
+</html>
