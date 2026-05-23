@@ -2,6 +2,8 @@
 
 A browser-based Markdown and Mermaid diagram editor deployed on Cloudflare Workers. It can be run fully locally or deployed as a self-hosted instance, optionally protected by Cloudflare Access SSO.
 
+**Live Demo**: [openmarkdown.harryshelton.com](https://openmarkdown.harryshelton.com)
+
 Great for non-technical stakeholders who need to open markdown files but don't have VS Code installed or similar, and don't want to trust third party sites with the file!
 
 > **No user modified markdown or files exist on a server**, only on Browser localStorage; this means it will appear when the user closes the tab or browser; but clearing the cache will wipe it. This tool is not designed for storing long-term markdown files.

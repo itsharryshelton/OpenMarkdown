@@ -22,7 +22,13 @@
 			"fallthrough": true
 		}
 	],
-	"routes": [],
+	"routes": [
+		// Custom domain route. Add your domain here to publish on a custom domain, or remove this array to deploy to workers.dev only.
+		{
+			"pattern": "openmarkdown.harryshelton.com",
+			"custom_domain": true
+		}
+	],
 	"vars": {
 		"CF_ACCESS_TEAM_NAME": ""
 	}
