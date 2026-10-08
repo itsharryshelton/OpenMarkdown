@@ -164,10 +164,10 @@ function generateTabId() {
 
 function createTab(name, content) {
 	if (tabs.length >= MAX_TABS) {
-		alert('Maximum of ' + MAX_TABS + ' tabs reached. Please close a tab first.');
+		alert(tf('tab_max_reached', { n: MAX_TABS }));
 		return null;
 	}
-	var tab = { id: generateTabId(), name: name || ('Untitled ' + tabCounter), content: content || '', scrollPos: 0 };
+	var tab = { id: generateTabId(), name: name || tf('tab_untitled', { n: tabCounter }), content: content || '', scrollPos: 0 };
 	tabs.push(tab);
 	renderTabBar();
 	switchTab(tab.id);
@@ -205,7 +205,7 @@ function closeTab(tabId) {
 	if (tabs.length <= 1) {
 		// Cannot close last tab, just clear it
 		tab.content = '';
-		tab.name = 'Untitled 1';
+		tab.name = tf('tab_untitled', { n: 1 });
 		editorEl.value = '';
 		handleEditorInput();
 		renderTabBar();
@@ -213,7 +213,7 @@ function closeTab(tabId) {
 		return;
 	}
 	if (tab.content.trim().length > 0) {
-		if (!confirm('Close "' + tab.name + '"? Unsaved content will be lost.')) return;
+		if (!confirm(tf('tab_close_confirm', { name: tab.name }))) return;
 	}
 	var idx = tabs.indexOf(tab);
 	tabs.splice(idx, 1);
@@ -284,7 +284,7 @@ function renderTabBar() {
 
 			var closeBtn = document.createElement('button');
 			closeBtn.className = 'tab-close';
-			closeBtn.title = 'Close tab';
+			closeBtn.title = t('tab_close_title');
 			closeBtn.innerHTML = '<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>';
 			closeBtn.addEventListener('click', function(e) {
 				e.stopPropagation();
@@ -298,7 +298,7 @@ function renderTabBar() {
 	// Add "+" button
 	var addBtn = document.createElement('button');
 	addBtn.className = 'tab-add';
-	addBtn.title = 'New tab';
+	addBtn.title = t('tab_new_title');
 	addBtn.innerHTML = '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>';
 	addBtn.addEventListener('click', function() { createTab(); });
 	tabBarEl.appendChild(addBtn);
@@ -340,10 +340,10 @@ function loadTabState() {
 	var oldContent = null;
 	try { oldContent = localStorage.getItem('openmarkdown_markdown_content'); } catch(e) {}
 	if (oldContent) {
-		createTab('Document 1', oldContent);
+		createTab(tf('tab_document', { n: 1 }), oldContent);
 		try { localStorage.removeItem('openmarkdown_markdown_content'); } catch(e) {}
 	} else {
-		createTab('Untitled 1', '');
+		createTab(tf('tab_untitled', { n: 1 }), '');
 	}
 }
 
@@ -392,8 +392,8 @@ function handleEditorInput() {
 		// Update Word and Character count
 		var wordCount = markdownText.trim() ? markdownText.trim().split(/\s+/).length : 0;
 		var readingMins = Math.ceil(wordCount / 228);
-		var readingLabel = wordCount === 0 ? '0 min read' : readingMins + ' min read';
-		docCounterEl.textContent = wordCount + ' Words / ' + markdownText.length + ' Characters / ' + readingLabel;
+		var readingLabel = wordCount === 0 ? t('read_time_zero') : tf('read_time', { m: readingMins });
+		docCounterEl.textContent = tf('doc_counter', { w: wordCount, c: markdownText.length, r: readingLabel });
 
 		// Auto-save to active tab
 		saveTabState();
@@ -410,10 +410,10 @@ function handleEditorInput() {
 
 function renderPreview(html) {
 	// CRITICAL: Sanitise output before injecting into DOM
-	var cleanHtml = DOMPurify.sanitize(html, {
+	var cleanHtml = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(html, {
 		ADD_TAGS: ['iframe', 'input'],
 		ADD_ATTR: ['allow', 'allowfullscreen', 'type', 'checked', 'disabled']
-	});
+	}) : html;
 	previewEl.innerHTML = cleanHtml;
 
 	// Post-process: find mermaid code blocks rendered by marked as
@@ -441,7 +441,7 @@ function renderPreview(html) {
 					}
 				}).catch(function(err) {
 					// Show a clean error box instead of raw text
-					container.innerHTML = '<div class="mermaid-error-box">Diagram syntax error: ' + escapeHtml(String(err)) + '</div>';
+					container.innerHTML = '<div class="mermaid-error-box">' + tf('diagram_syntax_error', { err: escapeHtml(String(err)) }) + '</div>';
 					if (preEl && preEl.parentNode) {
 						preEl.parentNode.replaceChild(container, preEl);
 					}
@@ -482,7 +482,7 @@ function renderPreview(html) {
 			}
 			if (extraHtml) bodyContent = bodyContent + extraHtml;
 
-			var titleText = titleRaw || calloutType.charAt(0).toUpperCase() + calloutType.slice(1);
+			var titleText = titleRaw || calloutLabel(calloutType);
 
 			// SVG icons keyed by callout type
 			var svgE = '<' + '/svg>';
@@ -552,7 +552,95 @@ function renderPreview(html) {
 			}
 		}
 	}
+
+	// Post-process: add copy buttons to code blocks
+	addCodeCopyButtons(previewEl);
 }
+
+// Copy code block helper: wraps <pre> and adds copy button
+function addCodeCopyButtons(container) {
+	if (!container) return;
+	var preEls = container.querySelectorAll('pre');
+	for (var pi = 0; pi < preEls.length; pi++) {
+		var pre = preEls[pi];
+		// Skip if inside mermaid container or already wrapped
+		if (pre.querySelector('.mermaid-container') || pre.closest('.mermaid-container')) continue;
+		var codeEl = pre.querySelector('code');
+		// Skip mermaid code blocks
+		if (codeEl && codeEl.classList.contains('language-mermaid')) continue;
+		if (pre.parentElement && pre.parentElement.classList.contains('code-block-wrapper')) continue;
+
+		var wrapper = document.createElement('div');
+		wrapper.className = 'code-block-wrapper';
+		pre.parentNode.insertBefore(wrapper, pre);
+		wrapper.appendChild(pre);
+
+		var copyBtn = document.createElement('button');
+		copyBtn.type = 'button';
+		copyBtn.className = 'copy-code-btn';
+		copyBtn.setAttribute('data-i18n-title', 'code_copy');
+		var copyText = typeof t === 'function' ? t('code_copy') : '复制';
+		copyBtn.setAttribute('aria-label', copyText);
+		copyBtn.setAttribute('title', copyText);
+		copyBtn.innerHTML = '<svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span class="copy-label" data-i18n="code_copy">' + copyText + '</span>';
+		wrapper.appendChild(copyBtn);
+	}
+}
+
+function fallbackCopyText(text, callback) {
+	var textArea = document.createElement('textarea');
+	textArea.value = text;
+	textArea.style.position = 'fixed';
+	textArea.style.top = '-9999px';
+	textArea.style.left = '-9999px';
+	textArea.setAttribute('readonly', '');
+	document.body.appendChild(textArea);
+	textArea.select();
+	try {
+		document.execCommand('copy');
+		if (callback) callback();
+	} catch (err) {
+		console.error('Fallback copy failed:', err);
+	}
+	document.body.removeChild(textArea);
+}
+
+// Global click delegation for code block copy buttons
+document.addEventListener('click', function(e) {
+	var btn = e.target.closest('.copy-code-btn');
+	if (!btn) return;
+	e.preventDefault();
+	e.stopPropagation();
+
+	var wrapper = btn.closest('.code-block-wrapper');
+	if (!wrapper) return;
+	var codeEl = wrapper.querySelector('pre code') || wrapper.querySelector('pre');
+	if (!codeEl) return;
+
+	var textToCopy = codeEl.textContent || '';
+	var onCopied = function() {
+		btn.classList.add('copied');
+		var labelEl = btn.querySelector('.copy-label');
+		var copiedText = typeof t === 'function' ? t('code_copied') : '已复制!';
+		if (labelEl) labelEl.textContent = copiedText;
+		btn.setAttribute('title', copiedText);
+
+		setTimeout(function() {
+			btn.classList.remove('copied');
+			var defaultText = typeof t === 'function' ? t('code_copy') : '复制';
+			if (labelEl) labelEl.textContent = defaultText;
+			btn.setAttribute('title', defaultText);
+		}, 1800);
+	};
+
+	if (navigator.clipboard && navigator.clipboard.writeText) {
+		navigator.clipboard.writeText(textToCopy).then(onCopied).catch(function() {
+			fallbackCopyText(textToCopy, onCopied);
+		});
+	} else {
+		fallbackCopyText(textToCopy, onCopied);
+	}
+});
 
 editorEl.addEventListener('input', handleEditorInput);
 
@@ -622,7 +710,7 @@ function closeTemplatesOnBackdrop(e) {
 
 function fetchTemplateList() {
 	var listEl = document.getElementById('template-list');
-	listEl.innerHTML = '<p style="color: var(--text-muted);">Loading templates...</p>';
+	listEl.innerHTML = '<p style="color: var(--text-muted);">' + t('template_loading') + '</p>';
 
 	fetch('/api/templates')
 		.then(function(res) { return res.json(); })
@@ -643,7 +731,7 @@ function fetchTemplateList() {
 			}
 		})
 		.catch(function(err) {
-			listEl.innerHTML = '<p style="color: var(--text-muted);">Failed to load templates. Please try again.</p>';
+			listEl.innerHTML = '<p style="color: var(--text-muted);">' + t('template_load_failed') + '</p>';
 		});
 }
 
@@ -654,7 +742,7 @@ function loadTemplate(templateId) {
 	pendingTemplateId = templateId;
 	// Find template name from the list
 	var cards = document.querySelectorAll('.template-card h4');
-	pendingTemplateName = 'Template';
+	pendingTemplateName = t('template_default_name');
 	for (var c = 0; c < cards.length; c++) {
 		var card = cards[c].closest('.template-card');
 		if (card) {
@@ -684,7 +772,7 @@ function doLoadTemplate(mode) {
 		.then(function(res) { return res.json(); })
 		.then(function(data) {
 			if (mode === 'new') {
-				createTab(tname || data.name || 'Template', data.content);
+				createTab(tname || data.name || t('template_default_name'), data.content);
 			} else {
 				var tab = getTab(activeTabId);
 				if (tab) tab.name = tname || data.name || tab.name;
@@ -699,7 +787,7 @@ function doLoadTemplate(mode) {
 			}
 		})
 		.catch(function(err) {
-			alert('Failed to load template. Please try again.');
+			alert(t('template_load_failed_alert'));
 		});
 }
 
@@ -776,7 +864,7 @@ function loadScript(url) {
 		script.onload = resolve;
 		script.onerror = function() {
 			delete _scriptCache[url];
-			reject(new Error('Failed to load library: ' + url));
+			reject(new Error(tf('library_load_failed', { url: url })));
 		};
 		document.head.appendChild(script);
 	});
@@ -926,7 +1014,7 @@ function convertFileToMarkdown(file) {
 		return new Promise(function(resolve, reject) {
 			var reader = new FileReader();
 			reader.onload = function(e) { resolve(e.target.result); };
-			reader.onerror = function() { reject(new Error('Failed to read file')); };
+			reader.onerror = function() { reject(new Error(t('reading_failed_read'))); };
 			reader.readAsText(file);
 		}).then(function(htmlString) {
 			return convertHtmlToMarkdown(htmlString);
@@ -937,7 +1025,7 @@ function convertFileToMarkdown(file) {
 		return new Promise(function(resolve, reject) {
 			var reader = new FileReader();
 			reader.onload = function(e) { resolve(e.target.result); };
-			reader.onerror = function() { reject(new Error('Failed to read file')); };
+			reader.onerror = function() { reject(new Error(t('reading_failed_read'))); };
 			reader.readAsText(file);
 		}).then(function(csvString) {
 			return convertCsvToMarkdown(csvString);
@@ -948,14 +1036,14 @@ function convertFileToMarkdown(file) {
 		return new Promise(function(resolve, reject) {
 			var reader = new FileReader();
 			reader.onload = function(e) { resolve(e.target.result); };
-			reader.onerror = function() { reject(new Error('Failed to read file')); };
+			reader.onerror = function() { reject(new Error(t('reading_failed_read'))); };
 			reader.readAsArrayBuffer(file);
 		}).then(function(arrayBuffer) {
 			return convertDocxToMarkdown(arrayBuffer);
 		});
 	}
 
-	return Promise.reject(new Error('Unsupported file type: .' + ext));
+	return Promise.reject(new Error(tf('unsupported_file', { ext: ext })));
 }
 
 // Handle the "Convert to Markdown" file input change event
@@ -974,7 +1062,7 @@ function convertFile(event) {
 	}).catch(function(err) {
 		hideConversionProgress();
 		console.error('Conversion failed:', err);
-		alert('Conversion failed: ' + (err.message || 'Unknown error'));
+		alert(tf('conversion_failed', { err: (err.message || t('conversion_unknown_error')) }));
 	});
 }
 
@@ -989,7 +1077,7 @@ function handleConvertibleDrop(file) {
 	}).catch(function(err) {
 		hideConversionProgress();
 		console.error('Conversion failed:', err);
-		alert('Conversion failed: ' + (err.message || 'Unknown error'));
+		alert(tf('conversion_failed', { err: (err.message || t('conversion_unknown_error')) }));
 	});
 }
 
@@ -1068,7 +1156,7 @@ editorEl.addEventListener('drop', function(e) {
 // Clear document / New Document — clears active tab
 function clearDocument() {
 	if (editorEl.value.length > 0) {
-		if (!confirm('Are you sure you want to clear the current document?')) return;
+		if (!confirm(t('clear_doc_confirm'))) return;
 	}
 	editorEl.value = '';
 	var tab = getTab(activeTabId);
@@ -1110,11 +1198,11 @@ function updateThemeButtons(theme) {
 		if (theme === 'dark') {
 			lightIcon.style.display = 'inline-block';
 			darkIcon.style.display = 'none';
-			themeText.textContent = 'Light Mode';
+			themeText.textContent = t('view_light_mode');
 		} else {
 			lightIcon.style.display = 'none';
 			darkIcon.style.display = 'inline-block';
-			themeText.textContent = 'Dark Mode';
+			themeText.textContent = t('view_dark_mode');
 		}
 	}
 
@@ -1127,11 +1215,11 @@ function updateThemeButtons(theme) {
 		if (theme === 'dark') {
 			menuLightIcon.style.display = 'inline-block';
 			menuDarkIcon.style.display = 'none';
-			menuThemeText.textContent = 'Light Mode';
+			menuThemeText.textContent = t('view_light_mode');
 		} else {
 			menuLightIcon.style.display = 'none';
 			menuDarkIcon.style.display = 'inline-block';
-			menuThemeText.textContent = 'Dark Mode';
+			menuThemeText.textContent = t('view_dark_mode');
 		}
 	}
 
@@ -1179,10 +1267,10 @@ function exportToPdf() {
 	var result = marked.parse(markdownText);
 
 	function doPrintRender(html) {
-		previewEl.innerHTML = DOMPurify.sanitize(html, {
+		previewEl.innerHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(html, {
 			ADD_TAGS: ['input'],
 			ADD_ATTR: ['type', 'checked', 'disabled']
-		});
+		}) : html;
 
 		// Post-process Mermaid diagrams
 		var codeBlocks = previewEl.querySelectorAll('code.language-mermaid');
@@ -1204,7 +1292,7 @@ function exportToPdf() {
 							preEl.parentNode.replaceChild(container, preEl);
 						}
 					}).catch(function(err) {
-						container.innerHTML = '<div class="mermaid-error-box">Diagram error: ' + escapeHtml(String(err)) + '</div>';
+						container.innerHTML = '<div class="mermaid-error-box">' + tf('diagram_error', { err: escapeHtml(String(err)) }) + '</div>';
 						if (preEl && preEl.parentNode) {
 							preEl.parentNode.replaceChild(container, preEl);
 						}
@@ -1238,7 +1326,7 @@ function exportToPdf() {
 					}
 					if (extraHtml) bodyContent = bodyContent + extraHtml;
 
-					var titleText = titleRaw || calloutType.charAt(0).toUpperCase() + calloutType.slice(1);
+					var titleText = titleRaw || calloutLabel(calloutType);
 
 					var svgE = '<' + '/svg>';
 					var spnE = '<' + '/span>';
@@ -1502,7 +1590,7 @@ function ctxTaskList() {
 function insertLink() {
 	var start = editorEl.selectionStart;
 	var end = editorEl.selectionEnd;
-	var selectedText = editorEl.value.substring(start, end) || 'link text';
+	var selectedText = editorEl.value.substring(start, end) || t('link_text');
 	var replacement = '[' + selectedText + '](url)';
 	var val = editorEl.value;
 	editorEl.value = val.substring(0, start) + replacement + val.substring(end);
@@ -1553,9 +1641,9 @@ function insertSnippet(type, customContent) {
 	if (type === 'custom' && customContent) {
 		snippet = NL + customContent + NL;
 	} else if (type === 'table') {
-		snippet = NL + '| Column 1 | Column 2 | Column 3 |' + NL + '|----------|----------|----------|' + NL + '| Data 1   | Data 2   | Data 3   |' + NL;
+		snippet = NL + '| ' + tf('table_column', { n: 1 }) + ' | ' + tf('table_column', { n: 2 }) + ' | ' + tf('table_column', { n: 3 }) + ' |' + NL + '|----------|----------|----------|' + NL + '| ' + tf('table_data', { n: 1 }) + '   | ' + tf('table_data', { n: 2 }) + '   | ' + tf('table_data', { n: 3 }) + '   |' + NL;
 	} else if (type === 'callout') {
-		snippet = NL + '>[!info] Information' + NL + '>Add your callout text here.' + NL;
+		snippet = NL + '>[!info] ' + t('callout_snippet_title') + NL + '>' + t('callout_snippet_body') + NL;
 	} else if (type === 'diagram') {
 		snippet = NL + '```mermaid' + NL + 'graph TD' + NL + '  A[Start] --> B[End]' + NL + '```' + NL;
 	}
@@ -1594,7 +1682,7 @@ function generateTableMarkdown(cols, rows) {
 	var headerCells = [];
 	var separatorCells = [];
 	for (var c = 0; c < cols; c++) {
-		headerCells.push(' Column ' + (c + 1) + ' ');
+		headerCells.push(' ' + tf('table_column', { n: (c + 1) }) + ' ');
 		separatorCells.push('----------');
 	}
 	var lines = ['| ' + headerCells.join('| ') + '|'];
@@ -1623,7 +1711,7 @@ function showTablePicker(buttonEl, mode) {
 
 	var label = document.createElement('div');
 	label.className = 'table-grid-label';
-	label.textContent = 'Select size';
+	label.textContent = t('table_select_size');
 
 	var hoverCol = 0;
 	var hoverRow = 0;
@@ -1638,7 +1726,7 @@ function showTablePicker(buttonEl, mode) {
 				cells[ci].classList.add('highlight');
 			}
 		}
-		label.textContent = (col + 1) + ' x ' + (row + 1);
+		label.textContent = tf('table_size', { c: (col + 1), r: (row + 1) });
 	}
 
 	for (var r = 0; r < GRID_ROWS; r++) {
@@ -1689,18 +1777,18 @@ function showTablePicker(buttonEl, mode) {
 
 // Callout type definitions
 var calloutTypes = [
-	{ type: 'note', label: 'Note', colour: '#448aff' },
-	{ type: 'info', label: 'Info', colour: '#2196f3' },
-	{ type: 'tip', label: 'Tip', colour: '#00bfa5' },
-	{ type: 'success', label: 'Success', colour: '#4caf50' },
-	{ type: 'warning', label: 'Warning', colour: '#ff9100' },
-	{ type: 'danger', label: 'Danger', colour: '#f44336' },
-	{ type: 'bug', label: 'Bug', colour: '#f44336' },
-	{ type: 'example', label: 'Example', colour: '#7c4dff' },
-	{ type: 'question', label: 'Question', colour: '#ff9800' },
-	{ type: 'abstract', label: 'Abstract', colour: '#00bcd4' },
-	{ type: 'todo', label: 'To Do', colour: '#2196f3' },
-	{ type: 'quote', label: 'Quote', colour: '#9e9e9e' }
+	{ type: 'note', label: calloutLabel('note'), colour: '#448aff' },
+	{ type: 'info', label: calloutLabel('info'), colour: '#2196f3' },
+	{ type: 'tip', label: calloutLabel('tip'), colour: '#00bfa5' },
+	{ type: 'success', label: calloutLabel('success'), colour: '#4caf50' },
+	{ type: 'warning', label: calloutLabel('warning'), colour: '#ff9100' },
+	{ type: 'danger', label: calloutLabel('danger'), colour: '#f44336' },
+	{ type: 'bug', label: calloutLabel('bug'), colour: '#f44336' },
+	{ type: 'example', label: calloutLabel('example'), colour: '#7c4dff' },
+	{ type: 'question', label: calloutLabel('question'), colour: '#ff9800' },
+	{ type: 'abstract', label: calloutLabel('abstract'), colour: '#00bcd4' },
+	{ type: 'todo', label: calloutLabel('todo'), colour: '#2196f3' },
+	{ type: 'quote', label: calloutLabel('quote'), colour: '#9e9e9e' }
 ];
 
 // Show the callout type picker
@@ -1733,8 +1821,8 @@ function showCalloutPicker(buttonEl, mode) {
 			item.addEventListener('click', function(e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var title = ct.type.charAt(0).toUpperCase() + ct.type.slice(1);
-				var calloutMd = '> [!' + ct.type + '] ' + title + '\n> Your text here.';
+				var title = calloutLabel(ct.type);
+				var calloutMd = '> [!' + ct.type + '] ' + title + '\n> ' + t('callout_insert_body');
 				closeActivePicker();
 				if (mode === 'wysiwyg') {
 					wysiwygInsertBlock(calloutMd);
@@ -1880,8 +1968,8 @@ function renderWysiwygView() {
 	// Update word/character count
 	var wordCount = source.trim() ? source.trim().split(/\s+/).length : 0;
 	var readingMins = Math.ceil(wordCount / 228);
-	var readingLabel = wordCount === 0 ? '0 min read' : readingMins + ' min read';
-	wysiwygDocCounterEl.textContent = wordCount + ' Words / ' + source.length + ' Characters / ' + readingLabel;
+	var readingLabel = wordCount === 0 ? t('read_time_zero') : tf('read_time', { m: readingMins });
+	wysiwygDocCounterEl.textContent = tf('doc_counter', { w: wordCount, c: source.length, r: readingLabel });
 
 	// Show placeholder if no content
 	if (wysiwygBlocks.length === 0) {
@@ -1890,8 +1978,10 @@ function renderWysiwygView() {
 		placeholder.className = 'wysiwyg-placeholder';
 		placeholder.onclick = startNewBlock;
 		placeholder.innerHTML = '<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.4;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>'
-			+ '<p>Click here to start writing, or drag and drop a .md file</p>'
-			+ '<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;">You can also paste markdown or use the toolbar above</p>';
+			+ '<p>' + t('placeholder_click') + '</p>'
+			+ '<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;">' + t('placeholder_formats') + '</p>'
+			+ '<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;">' + t('placeholder_switch') + '</p>'
+			+ '<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;">' + t('placeholder_paste') + '</p>';
 		wysiwygBodyEl.appendChild(placeholder);
 		return;
 	}
@@ -1908,11 +1998,11 @@ function renderWysiwygView() {
 			var result = marked.parse(block.raw);
 			if (result && typeof result.then === 'function') {
 				result.then(function(html) {
-					wrapper.innerHTML = DOMPurify.sanitize(html);
+					wrapper.innerHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(html) : html;
 					postProcessBlock(wrapper);
 				});
 			} else {
-				wrapper.innerHTML = DOMPurify.sanitize(result);
+				wrapper.innerHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(result) : result;
 				postProcessBlock(wrapper);
 			}
 
@@ -1947,7 +2037,7 @@ function postProcessBlock(wrapper) {
 				container.innerHTML = result.svg;
 				if (preEl && preEl.parentNode) preEl.parentNode.replaceChild(container, preEl);
 			}).catch(function(err) {
-				container.innerHTML = '<div class="mermaid-error-box">Diagram syntax error: ' + escapeHtml(String(err)) + '</div>';
+				container.innerHTML = '<div class="mermaid-error-box">' + tf('diagram_syntax_error', { err: escapeHtml(String(err)) }) + '</div>';
 				if (preEl && preEl.parentNode) preEl.parentNode.replaceChild(container, preEl);
 			});
 		})(codeBlocks[mi]);
@@ -1979,7 +2069,7 @@ function postProcessBlock(wrapper) {
 				}
 				if (extraHtml) bodyContent = bodyContent + extraHtml;
 
-				var titleText = titleRaw || calloutType.charAt(0).toUpperCase() + calloutType.slice(1);
+				var titleText = titleRaw || calloutLabel(calloutType);
 
 				var svgE = '<' + '/svg>';
 				var spnE = '<' + '/span>';
@@ -2034,6 +2124,9 @@ function postProcessBlock(wrapper) {
 			})(blockquotes[bq]);
 		}
 	} catch(e) {}
+
+	// Post-process: add copy buttons to code blocks in WYSIWYG block
+	addCodeCopyButtons(wrapper);
 }
 
 // Start editing a block: replace rendered HTML with a textarea
@@ -2187,7 +2280,7 @@ function wysiwygInsertLink() {
 	var start = textarea.selectionStart;
 	var end = textarea.selectionEnd;
 	var val = textarea.value;
-	var selected = val.substring(start, end) || 'link text';
+	var selected = val.substring(start, end) || t('link_text');
 	var replacement = '[' + selected + '](url)';
 	textarea.value = val.substring(0, start) + replacement + val.substring(end);
 	textarea.focus();
@@ -2317,7 +2410,7 @@ function closeFindBar() {
 	bar.classList.remove('active');
 	findMatches = [];
 	findCurrentIndex = -1;
-	document.getElementById('find-count').textContent = '0 / 0';
+	document.getElementById('find-count').textContent = t('find_count_zero');
 	document.getElementById('find-replace-row').style.display = 'none';
 	document.getElementById('find-replace-toggle').classList.remove('active');
 
@@ -2352,7 +2445,7 @@ function runFind() {
 	findCurrentIndex = -1;
 
 	if (!query) {
-		document.getElementById('find-count').textContent = '0 / 0';
+		document.getElementById('find-count').textContent = t('find_count_zero');
 		return;
 	}
 
@@ -2379,7 +2472,7 @@ function runFind() {
 function updateFindCount() {
 	var countEl = document.getElementById('find-count');
 	if (findMatches.length === 0) {
-		countEl.textContent = '0 / 0';
+		countEl.textContent = t('find_count_zero');
 	} else {
 		countEl.textContent = (findCurrentIndex + 1) + ' / ' + findMatches.length;
 	}

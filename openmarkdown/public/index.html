@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="zh" data-theme="light">
 
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>OpenMarkdown - Markdown and Mermaid Visualiser</title>
-	<link rel="icon" href="data:," />
+	<title>OpenMarkdown - Markdown 与 Mermaid 可视化工具</title>
+	<link rel="icon" href="/favicon.png" sizes="any" type="image/png" />
+	<link rel="apple-touch-icon" href="/favicon.png" />
 
 	<!-- Premium Fonts -->
 	<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +22,9 @@
 			document.documentElement.setAttribute('data-theme', savedTheme);
 		})();
 	</script>
+
+	<!-- i18n dictionary and helpers (loaded before body renders so attributes apply ASAP) -->
+	<script src="/i18n.js"></script>
 
 	<!-- External Libraries via CDN -->
 	<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/lib/marked.umd.js"></script>
@@ -40,19 +44,14 @@
 	<header class="top-bar">
 		<div class="brand">
 			<a href="https://github.com/itsharryshelton/OpenMarkdown" target="_blank" rel="noopener noreferrer" class="brand-link">
-				<svg class="brand-logo" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-					xmlns="http://www.w3.org/2000/svg">
-					<path stroke-linecap="round" stroke-linejoin="round"
-						d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z">
-					</path>
-				</svg>
+				<img src="/favicon.png" alt="OpenMarkdown" class="brand-logo" />
 				<h1>OpenMarkdown</h1>
 			</a>
 		</div>
 
 		<nav class="menu-bar" id="menu-bar">
 			<div class="menu-item" id="menu-file">
-				<button class="menu-trigger" onclick="toggleMenu('menu-file')">File</button>
+				<button class="menu-trigger" onclick="toggleMenu('menu-file')" data-i18n="menu_file">File</button>
 				<div class="menu-dropdown">
 					<button class="menu-option" onclick="closeMenus(); clearDocument();">
 						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -60,7 +59,7 @@
 								d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z">
 							</path>
 						</svg>
-						<span>Clear File</span>
+						<span data-i18n="file_clear">Clear File</span>
 					</button>
 					<button class="menu-option" onclick="closeMenus(); toggleTemplates();">
 						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -68,7 +67,7 @@
 								d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H6a2.25 2.25 0 00-2.25 2.25v7.5A2.25 2.25 0 006 19.5h2.25m7.5 0v-1.875a3.375 3.375 0 00-3.375-3.375h-.5M15.75 18.75h2.25a2.25 2.25 0 002.25-2.25M15.75 18.75a48.12 48.12 0 01-7.5 0">
 							</path>
 						</svg>
-						<span>Import Template</span>
+						<span data-i18n="file_import_template">Import Template</span>
 					</button>
 					<button class="menu-option" onclick="closeMenus(); document.getElementById('file-input').click();">
 						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -76,7 +75,7 @@
 								d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5">
 							</path>
 						</svg>
-						<span>Upload File</span>
+						<span data-i18n="file_upload">Upload File</span>
 					</button>
 					<button class="menu-option" onclick="closeMenus(); document.getElementById('convert-file-input').click();">
 						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -84,7 +83,7 @@
 								d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z">
 							</path>
 						</svg>
-						<span>Convert to Markdown</span>
+						<span data-i18n="file_convert">Convert to Markdown</span>
 					</button>
 					<div class="menu-divider"></div>
 					<button class="menu-option" onclick="closeMenus(); exportMarkdown();">
@@ -93,7 +92,7 @@
 								d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3">
 							</path>
 						</svg>
-						<span>Download File</span>
+						<span data-i18n="file_download">Download File</span>
 					</button>
 					<button class="menu-option" onclick="closeMenus(); menuExportPdf();">
 						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -101,7 +100,7 @@
 								d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0a2.25 2.25 0 01-2.25 2.25H8.59a2.25 2.25 0 01-2.25-2.25M17.66 18l.22-2.25H6.12L6.34 18">
 							</path>
 						</svg>
-						<span>Export to PDF</span>
+						<span data-i18n="file_export_pdf">Export to PDF</span>
 					</button>
 					<div class="menu-divider"></div>
 					<button class="menu-option"
@@ -111,7 +110,7 @@
 								d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12">
 							</path>
 						</svg>
-						<span>Save</span>
+						<span data-i18n="file_save">Save</span>
 					</button>
 					<div class="menu-divider"></div>
 					<button class="menu-option menu-option-danger" onclick="closeMenus(); document.getElementById('clear-cache-modal').classList.add('active');">
@@ -120,13 +119,13 @@
 								d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0">
 							</path>
 						</svg>
-						<span>Clear Cache</span>
+						<span data-i18n="file_clear_cache">Clear Cache</span>
 					</button>
 				</div>
 			</div>
 
 			<div class="menu-item" id="menu-view">
-				<button class="menu-trigger" onclick="toggleMenu('menu-view')">View</button>
+				<button class="menu-trigger" onclick="toggleMenu('menu-view')" data-i18n="menu_view">View</button>
 				<div class="menu-dropdown">
 					<button class="menu-option" id="menu-opt-visual"
 						onclick="closeMenus(); if(editorMode!=='wysiwyg') toggleEditorMode();">
@@ -137,7 +136,7 @@
 							<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
 							</path>
 						</svg>
-						<span>Visual Editor</span>
+						<span data-i18n="view_visual_editor">Visual Editor</span>
 						<span class="menu-check" id="menu-check-visual">&#10003;</span>
 					</button>
 					<button class="menu-option" id="menu-opt-raw"
@@ -146,18 +145,18 @@
 							<path stroke-linecap="round" stroke-linejoin="round"
 								d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"></path>
 						</svg>
-						<span>Raw Markdown</span>
+						<span data-i18n="view_raw_markdown">Raw Markdown</span>
 						<span class="menu-check" id="menu-check-raw" style="display:none;">&#10003;</span>
 					</button>
 					<div class="menu-divider"></div>
-					<div class="menu-sublabel">Raw Layout</div>
+					<div class="menu-sublabel" data-i18n="view_raw_layout">Raw Layout</div>
 					<button class="menu-option menu-layout-opt" data-layout="split"
 						onclick="closeMenus(); if(editorMode==='wysiwyg') toggleEditorMode(); setLayoutMode('split');">
 						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round"
 								d="M9 4.5v15m6-15v15M3.75 4.5h16.5v15H3.75z"></path>
 						</svg>
-						<span>Side by Side</span>
+						<span data-i18n="view_side_by_side">Side by Side</span>
 					</button>
 					<button class="menu-option menu-layout-opt" data-layout="editor"
 						onclick="closeMenus(); if(editorMode==='wysiwyg') toggleEditorMode(); setLayoutMode('editor');">
@@ -165,7 +164,7 @@
 							<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.5h16.5v15H3.75z"></path>
 							<path stroke-linecap="round" d="M7 8h10M7 11h7M7 14h9"></path>
 						</svg>
-						<span>Editor Only</span>
+						<span data-i18n="view_editor_only">Editor Only</span>
 					</button>
 					<button class="menu-option menu-layout-opt" data-layout="preview"
 						onclick="closeMenus(); if(editorMode==='wysiwyg') toggleEditorMode(); setLayoutMode('preview');">
@@ -176,7 +175,7 @@
 							<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
 							</path>
 						</svg>
-						<span>Preview Only</span>
+						<span data-i18n="view_preview_only">Preview Only</span>
 					</button>
 					<div class="menu-divider"></div>
 					<button class="menu-option" onclick="closeMenus(); toggleTheme();">
@@ -198,14 +197,26 @@
 						<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
 						</svg>
-						<span>Spell Check</span>
+						<span data-i18n="view_spell_check">Spell Check</span>
 						<span class="menu-check" id="menu-check-spellcheck" style="display:none;">&#10003;</span>
 					</button>
+					<div class="menu-divider"></div>
+					<div class="menu-sublabel" data-i18n="view_language">Language</div>
+					<div id="menu-language">
+						<button class="menu-option menu-lang-opt" data-lang="zh" onclick="closeMenus(); switchLanguage('zh');">
+							<span>中文</span>
+							<span class="menu-check" style="display:none;">&#10003;</span>
+						</button>
+						<button class="menu-option menu-lang-opt" data-lang="en" onclick="closeMenus(); switchLanguage('en');">
+							<span>English</span>
+							<span class="menu-check" style="display:none;">&#10003;</span>
+						</button>
+					</div>
 				</div>
 			</div>
 
 			<div class="menu-item" id="menu-help">
-				<button class="menu-trigger" onclick="closeMenus(); toggleHelp();">Help</button>
+				<button class="menu-trigger" onclick="closeMenus(); toggleHelp();" data-i18n="menu_help">Help</button>
 			</div>
 		</nav>
 
@@ -223,75 +234,75 @@
 		<!-- WYSIWYG Visual Editor Pane (default view) -->
 		<section class="wysiwyg-pane" id="wysiwyg-pane">
 			<div class="pane-header">
-				<span>Visual Editor <span class="shortcut-hint">Click any block to edit</span></span>
-				<span id="wysiwyg-doc-counter">0 Words / 0 Characters</span>
+				<span><span data-i18n="visual_editor">Visual Editor</span> <span class="shortcut-hint" data-i18n="visual_editor_hint">Click any block to edit</span></span>
+				<span id="wysiwyg-doc-counter">0 词 / 0 字符 / 0 分钟阅读</span>
 			</div>
 			<div class="editor-toolbar" id="wysiwyg-toolbar">
 				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
-					onclick="wysiwygInsertBlock('# Heading')" title="Heading 1">H1</button>
+					onclick="wysiwygInsertBlock('# Heading')" title="Heading 1" data-i18n-title="tt_h1">H1</button>
 				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
-					onclick="wysiwygInsertBlock('## Heading')" title="Heading 2">H2</button>
+					onclick="wysiwygInsertBlock('## Heading')" title="Heading 2" data-i18n-title="tt_h2">H2</button>
 				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
-					onclick="wysiwygInsertBlock('### Heading')" title="Heading 3">H3</button>
+					onclick="wysiwygInsertBlock('### Heading')" title="Heading 3" data-i18n-title="tt_h3">H3</button>
 				<div class="toolbar-divider"></div>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygWrap('**', '**')"
-					title="Bold">
+					title="Bold" data-i18n-title="tt_bold">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path d="M6 4h8a4 4 0 010 8H6zm0 8h9a4 4 0 010 8H6z" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygWrap('*', '*')"
-					title="Italic">
+					title="Italic" data-i18n-title="tt_italic">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M10 4h4m2 0h-2M14 4l-4 16m-4 0h4m-2 0h-2" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygWrap('~~', '~~')" title="Strikethrough">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygWrap('~~', '~~')" title="Strikethrough" data-i18n-title="tt_strikethrough">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M12 12h8m-16 0h4m1-4c0-2.21 1.567-4 3.5-4 1.933 0 3.5 1.79 3.5 4m-7 8c0 2.21 1.567 4 3.5 4 1.933 0 3.5-1.79 3.5-4" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertLink()" title="Link">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertLink()" title="Link" data-i18n-title="tt_link">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('![Alt text](https://static.vecteezy.com/system/resources/thumbnails/019/552/573/small/illustration-of-duck-animals-bird-drawing-vector.jpg)')" title="Insert Image">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('![Alt text](https://static.vecteezy.com/system/resources/thumbnails/019/552/573/small/illustration-of-duck-animals-bird-drawing-vector.jpg)')" title="Insert Image" data-i18n-title="tt_image">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('----')" title="Line Break / Page Break">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('----')" title="Line Break / Page Break" data-i18n-title="tt_line_break">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5" />
 					</svg>
 				</button>
 				<div class="toolbar-divider"></div>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('> Blockquote')" title="Blockquote">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('> Blockquote')" title="Blockquote" data-i18n-title="tt_blockquote">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('```\ncode here\n```')" title="Code Block">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('```\ncode here\n```')" title="Code Block" data-i18n-title="tt_code">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('- [ ] Task item')" title="Task List / Checkbox">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wysiwygInsertBlock('- [ ] Task item')" title="Task List / Checkbox" data-i18n-title="tt_task">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();"
-					onclick="wysiwygInsertBlock('- List item')" title="Bullet List">
+					onclick="wysiwygInsertBlock('- List item')" title="Bullet List" data-i18n-title="tt_bullet">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();"
-					onclick="wysiwygInsertBlock('1. List item')" title="Numbered List">
+					onclick="wysiwygInsertBlock('1. List item')" title="Numbered List" data-i18n-title="tt_numbered">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M8.242 5.992h12m-12 6.003h12m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 111.591 1.59l-1.83 1.83h2.16" />
@@ -299,14 +310,14 @@
 				</button>
 				<div class="toolbar-divider"></div>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();"
-					onclick="showTablePicker(this, 'wysiwyg')" title="Insert Table">
+					onclick="showTablePicker(this, 'wysiwyg')" title="Insert Table" data-i18n-title="tt_table">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18v18H3V3z" />
 						<path stroke-linecap="round" stroke-linejoin="round" d="M3 9h18M3 15h18M9 3v18M15 3v18" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();"
-					onclick="showCalloutPicker(this, 'wysiwyg')" title="Insert Callout">
+					onclick="showCalloutPicker(this, 'wysiwyg')" title="Insert Callout" data-i18n-title="tt_callout">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -314,7 +325,7 @@
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();"
 					onclick="wysiwygInsertBlock('```mermaid\ngraph TD\n  A[Start] --> B[End]\n```')"
-					title="Insert Diagram">
+					title="Insert Diagram" data-i18n-title="tt_diagram">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
 						<path stroke-linecap="round" stroke-linejoin="round"
@@ -331,9 +342,9 @@
 								d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z">
 							</path>
 						</svg>
-						<p>Click here to start writing, or drag and drop a file</p>
-						<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;">Supports .md, .txt, .html, .csv, and .docx files</p>
-						<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;">Switch between RAW and Visual Editor
+						<p data-i18n="placeholder_click">Click here to start writing, or drag and drop a file</p>
+						<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;" data-i18n="placeholder_formats">Supports .md, .txt, .html, .csv, and .docx files</p>
+						<p style="font-size: 12px; opacity: 0.6; margin-top: 4px;" data-i18n="placeholder_switch">Switch between RAW and Visual Editor
 							at the top</p>
 					</div>
 				</div>
@@ -343,77 +354,77 @@
 		<!-- Left Panel: Raw Monospace Editor (hidden by default in WYSIWYG mode) -->
 		<section class="pane editor-pane" id="editor-pane" style="display: none;">
 			<div class="pane-header">
-				<span>Markdown Editor <span class="shortcut-hint">Ctrl+B Bold / Ctrl+I Italic / Ctrl+K
-						Link</span></span>
-				<span id="doc-counter">0 Words / 0 Characters</span>
+				<span><span data-i18n="markdown_editor">Markdown Editor</span> <span class="shortcut-hint" data-i18n="editor_shortcut_hint">Ctrl+B Bold / Ctrl+I Italic / Ctrl+K
+							Link</span></span>
+				<span id="doc-counter">0 词 / 0 字符 / 0 分钟阅读</span>
 			</div>
 			<div class="editor-toolbar">
 				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
-					onclick="insertSnippet('custom', '# Heading')" title="Heading 1">H1</button>
+					onclick="insertSnippet('custom', '# Heading')" title="Heading 1" data-i18n-title="tt_h1">H1</button>
 				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
-					onclick="insertSnippet('custom', '## Heading')" title="Heading 2">H2</button>
+					onclick="insertSnippet('custom', '## Heading')" title="Heading 2" data-i18n-title="tt_h2">H2</button>
 				<button class="toolbar-btn toolbar-btn-text" onmousedown="event.preventDefault();"
-					onclick="insertSnippet('custom', '### Heading')" title="Heading 3">H3</button>
+					onclick="insertSnippet('custom', '### Heading')" title="Heading 3" data-i18n-title="tt_h3">H3</button>
 				<div class="toolbar-divider"></div>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wrapSelection('**', '**')"
-					title="Bold">
+					title="Bold" data-i18n-title="tt_bold">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path d="M6 4h8a4 4 0 010 8H6zm0 8h9a4 4 0 010 8H6z" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wrapSelection('*', '*')"
-					title="Italic">
+					title="Italic" data-i18n-title="tt_italic">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M10 4h4m2 0h-2M14 4l-4 16m-4 0h4m-2 0h-2" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertLink()" title="Link">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertLink()" title="Link" data-i18n-title="tt_link">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wrapSelection('~~', '~~')" title="Strikethrough">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="wrapSelection('~~', '~~')" title="Strikethrough" data-i18n-title="tt_strikethrough">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M12 12h8m-16 0h4m1-4c0-2.21 1.567-4 3.5-4 1.933 0 3.5 1.79 3.5 4m-7 8c0 2.21 1.567 4 3.5 4 1.933 0 3.5-1.79 3.5-4" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '![Alt text](https://via.placeholder.com/600x300)')" title="Insert Image">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '![Alt text](https://via.placeholder.com/600x300)')" title="Insert Image" data-i18n-title="tt_image">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '----')" title="Line Break / Page Break">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '----')" title="Line Break / Page Break" data-i18n-title="tt_line_break">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5" />
 					</svg>
 				</button>
 				<div class="toolbar-divider"></div>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '> Blockquote')" title="Blockquote">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '> Blockquote')" title="Blockquote" data-i18n-title="tt_blockquote">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '```\ncode here\n```')" title="Code Block">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '```\ncode here\n```')" title="Code Block" data-i18n-title="tt_code">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25" />
 					</svg>
 				</button>
-				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '- [ ] Task item')" title="Task List / Checkbox">
+				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('custom', '- [ ] Task item')" title="Task List / Checkbox" data-i18n-title="tt_task">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertListPrefix('- ')"
-					title="Bullet List">
+					title="Bullet List" data-i18n-title="tt_bullet">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertListPrefix('1. ')"
-					title="Numbered List">
+					title="Numbered List" data-i18n-title="tt_numbered">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M8.242 5.992h12m-12 6.003h12m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 111.591 1.59l-1.83 1.83h2.16" />
@@ -421,21 +432,21 @@
 				</button>
 				<div class="toolbar-divider"></div>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="showTablePicker(this, 'raw')"
-					title="Insert Table">
+					title="Insert Table" data-i18n-title="tt_table">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18v18H3V3z" />
 						<path stroke-linecap="round" stroke-linejoin="round" d="M3 9h18M3 15h18M9 3v18M15 3v18" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();"
-					onclick="showCalloutPicker(this, 'raw')" title="Insert Callout">
+					onclick="showCalloutPicker(this, 'raw')" title="Insert Callout" data-i18n-title="tt_callout">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
 					</svg>
 				</button>
 				<button class="toolbar-btn" onmousedown="event.preventDefault();" onclick="insertSnippet('diagram')"
-					title="Insert Diagram">
+					title="Insert Diagram" data-i18n-title="tt_diagram">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
 						<path stroke-linecap="round" stroke-linejoin="round"
@@ -445,14 +456,14 @@
 			</div>
 			<div class="editor-container">
 				<textarea class="markdown-textarea" id="editor" spellcheck="false"
-					placeholder="Write your markdown document here... (or drag and drop a .md file)"></textarea>
+					placeholder="在此编写 Markdown 文档...(或拖入 .md 文件)" data-i18n-placeholder="editor_placeholder"></textarea>
 			</div>
 		</section>
 
 		<!-- Right Panel: Visualisation Output (hidden by default in WYSIWYG mode) -->
 		<section class="pane preview-pane" id="preview-pane" style="display: none;">
 			<div class="pane-header">
-				<span>Markdown Visualise</span>
+				<span data-i18n="markdown_visualise">Markdown Visualise</span>
 			</div>
 			<div class="preview-container">
 				<article class="markdown-body" id="preview"></article>
@@ -464,7 +475,7 @@
 	<div class="modal-overlay" id="help-modal" onclick="closeHelpOnBackdrop(event)">
 		<div class="modal">
 			<div class="modal-header">
-				<h2>How to Use This Tool</h2>
+				<h2 data-i18n="help_title">How to Use This Tool</h2>
 				<button class="modal-close" onclick="toggleHelp()" title="Close">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
 						xmlns="http://www.w3.org/2000/svg">
@@ -473,8 +484,8 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<h3>What is this tool?</h3>
-				<p>This is a document editor that lets you write in <strong>Markdown</strong> (a simple text formatting
+				<h3 data-i18n="help_what">What is this tool?</h3>
+				<p data-i18n-html="help_what_body">This is a document editor that lets you write in <strong>Markdown</strong> (a simple text formatting
 					language) and instantly see a clean, formatted preview. You can also draw diagrams using
 					<strong>Mermaid</strong> syntax. When you are finished, export your document as a professional PDF
 					to share with colleagues or stakeholders.
@@ -482,34 +493,34 @@
 
 				<div class="help-divider"></div>
 
-				<h3>Getting Started</h3>
-				<p>Type in the left-hand panel (the Editor). The right-hand panel (the Visualiser) updates automatically
+				<h3 data-i18n="help_started">Getting Started</h3>
+				<p data-i18n="help_started_body">Type in the left-hand panel (the Editor). The right-hand panel (the Visualiser) updates automatically
 					to show you what your finished document looks like. Your work is automatically saved in your
 					browser.</p>
 
 				<div class="help-divider"></div>
 
-				<h3>Basic Formatting</h3>
-				<p>Markdown uses simple symbols to format text. Here are the most common ones:</p>
+				<h3 data-i18n="help_basic">Basic Formatting</h3>
+				<p data-i18n="help_basic_intro">Markdown uses simple symbols to format text. Here are the most common ones:</p>
 				<table class="help-table">
 					<thead>
 						<tr>
-							<th>What You Type</th>
-							<th>What It Produces</th>
+							<th data-i18n="help_col_type">What You Type</th>
+							<th data-i18n="help_col_produces">What It Produces</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td><code># Heading 1</code></td>
-							<td>A large heading</td>
+							<td data-i18n="help_heading_large">A large heading</td>
 						</tr>
 						<tr>
 							<td><code>## Heading 2</code></td>
-							<td>A medium heading</td>
+							<td data-i18n="help_heading_medium">A medium heading</td>
 						</tr>
 						<tr>
 							<td><code>### Heading 3</code></td>
-							<td>A small heading</td>
+							<td data-i18n="help_heading_small">A small heading</td>
 						</tr>
 						<tr>
 							<td><code>**bold text**</code></td>
@@ -521,35 +532,35 @@
 						</tr>
 						<tr>
 							<td><code>[Link Text](https://example.com)</code></td>
-							<td>A clickable link</td>
+							<td data-i18n="help_clickable_link">A clickable link</td>
 						</tr>
 						<tr>
 							<td><code>- Item one</code></td>
-							<td>A bullet point list</td>
+							<td data-i18n="help_bullet_list">A bullet point list</td>
 						</tr>
 						<tr>
 							<td><code>1. Item one</code></td>
-							<td>A numbered list</td>
+							<td data-i18n="help_numbered_list">A numbered list</td>
 						</tr>
 						<tr>
 							<td><code>> Quote text</code></td>
-							<td>A block quote</td>
+							<td data-i18n="help_block_quote">A block quote</td>
 						</tr>
 						<tr>
 							<td><code>---</code></td>
-							<td>A horizontal line divider</td>
+							<td data-i18n="help_horizontal_line">A horizontal line divider</td>
 						</tr>
 					</tbody>
 				</table>
 
 				<div class="help-divider"></div>
 
-				<h3>Tables</h3>
-				<p>Create tables using pipes (<code>|</code>) and hyphens (<code>-</code>):</p>
+				<h3 data-i18n="help_tables">Tables</h3>
+				<p data-i18n-html="help_tables_body">Create tables using pipes (<code>|</code>) and hyphens (<code>-</code>):</p>
 				<table class="help-table">
 					<thead>
 						<tr>
-							<th>What You Type</th>
+							<th data-i18n="help_col_type">What You Type</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -562,221 +573,221 @@
 
 				<div class="help-divider"></div>
 
-				<h3>Diagrams (Mermaid)</h3>
-				<p>You can add flowcharts, sequence diagrams, and more using Mermaid syntax. Wrap your diagram code in a
+				<h3 data-i18n="help_diagrams">Diagrams (Mermaid)</h3>
+				<p data-i18n-html="help_diagrams_body">You can add flowcharts, sequence diagrams, and more using Mermaid syntax. Wrap your diagram code in a
 					fenced code block with the language set to <code>mermaid</code>:</p>
 				<table class="help-table">
 					<thead>
 						<tr>
-							<th>What You Type</th>
-							<th>What It Produces</th>
+							<th data-i18n="help_col_type">What You Type</th>
+							<th data-i18n="help_col_produces">What It Produces</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td><code>&#96;&#96;&#96;mermaid</code><br><code>graph TD</code><br><code>&nbsp;&nbsp;A[Start] --> B[End]</code><br><code>&#96;&#96;&#96;</code>
 							</td>
-							<td>A flowchart with boxes and arrows</td>
+							<td data-i18n="help_flowchart_desc">A flowchart with boxes and arrows</td>
 						</tr>
 						<tr>
 							<td><code>&#96;&#96;&#96;mermaid</code><br><code>sequenceDiagram</code><br><code>&nbsp;&nbsp;Alice->>Bob: Hello</code><br><code>&#96;&#96;&#96;</code>
 							</td>
-							<td>A sequence diagram showing interactions</td>
+							<td data-i18n="help_sequence_desc">A sequence diagram showing interactions</td>
 						</tr>
 					</tbody>
 				</table>
 
 				<div class="help-divider"></div>
 
-				<h3>Admonitions / Callouts</h3>
-				<p>Callouts are highlighted boxes used to draw attention to important information. They use a blockquote
+				<h3 data-i18n="help_callouts">Admonitions / Callouts</h3>
+				<p data-i18n="help_callouts_body">Callouts are highlighted boxes used to draw attention to important information. They use a blockquote
 					with a special type marker on the first line.</p>
 				<table class="help-table">
 					<thead>
 						<tr>
-							<th>What You Type</th>
-							<th>What It Produces</th>
+							<th data-i18n="help_col_type">What You Type</th>
+							<th data-i18n="help_col_produces">What It Produces</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td><code>&gt;[!note]</code><br><code>&gt;Your message here.</code></td>
-							<td>A blue "Note" callout box with an icon</td>
+							<td data-i18n="help_callout_note_desc">A blue "Note" callout box with an icon</td>
 						</tr>
 						<tr>
 							<td><code>&gt;[!warning]</code><br><code>&gt;Be careful with this.</code></td>
-							<td>An orange "Warning" callout box</td>
+							<td data-i18n="help_callout_warning_desc">An orange "Warning" callout box</td>
 						</tr>
 						<tr>
 							<td><code>&gt;[!info] Custom Title</code><br><code>&gt;Body text here.</code></td>
-							<td>A callout with a custom heading instead of the default type name</td>
+							<td data-i18n="help_callout_custom_desc">A callout with a custom heading instead of the default type name</td>
 						</tr>
 						<tr>
 							<td><code>&gt;[!tip]+ Click to collapse</code><br><code>&gt;This starts open.</code></td>
-							<td>A foldable callout that starts <strong>expanded</strong> (user can collapse it)</td>
+							<td data-i18n-html="help_callout_expand_desc">A foldable callout that starts <strong>expanded</strong> (user can collapse it)</td>
 						</tr>
 						<tr>
 							<td><code>&gt;[!warning]- Click to expand</code><br><code>&gt;This starts closed.</code>
 							</td>
-							<td>A foldable callout that starts <strong>collapsed</strong> (user can expand it)</td>
+							<td data-i18n-html="help_callout_collapse_desc">A foldable callout that starts <strong>collapsed</strong> (user can expand it)</td>
 						</tr>
 					</tbody>
 				</table>
-				<p>Available callout types:</p>
+				<p data-i18n="help_callout_types">Available callout types:</p>
 				<table class="help-table">
 					<thead>
 						<tr>
-							<th>Type</th>
-							<th>Colour</th>
+							<th data-i18n="help_col_type_short">Type</th>
+							<th data-i18n="help_col_colour">Colour</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td><code>note</code></td>
-							<td style="color:#448aff;">Blue</td>
+							<td style="color:#448aff;" data-i18n="help_colour_blue">Blue</td>
 						</tr>
 						<tr>
 							<td><code>abstract</code></td>
-							<td style="color:#00bcd4;">Cyan</td>
+							<td style="color:#00bcd4;" data-i18n="help_colour_cyan">Cyan</td>
 						</tr>
 						<tr>
 							<td><code>info</code>, <code>todo</code></td>
-							<td style="color:#2196f3;">Blue</td>
+							<td style="color:#2196f3;" data-i18n="help_colour_blue">Blue</td>
 						</tr>
 						<tr>
 							<td><code>tip</code></td>
-							<td style="color:#00bfa5;">Teal</td>
+							<td style="color:#00bfa5;" data-i18n="help_colour_teal">Teal</td>
 						</tr>
 						<tr>
 							<td><code>success</code></td>
-							<td style="color:#4caf50;">Green</td>
+							<td style="color:#4caf50;" data-i18n="help_colour_green">Green</td>
 						</tr>
 						<tr>
 							<td><code>question</code></td>
-							<td style="color:#ff9800;">Amber</td>
+							<td style="color:#ff9800;" data-i18n="help_colour_amber">Amber</td>
 						</tr>
 						<tr>
 							<td><code>warning</code></td>
-							<td style="color:#ff9100;">Orange</td>
+							<td style="color:#ff9100;" data-i18n="help_colour_orange">Orange</td>
 						</tr>
 						<tr>
 							<td><code>failure</code>, <code>danger</code>, <code>bug</code></td>
-							<td style="color:#f44336;">Red</td>
+							<td style="color:#f44336;" data-i18n="help_colour_red">Red</td>
 						</tr>
 						<tr>
 							<td><code>example</code></td>
-							<td style="color:#7c4dff;">Purple</td>
+							<td style="color:#7c4dff;" data-i18n="help_colour_purple">Purple</td>
 						</tr>
 						<tr>
 							<td><code>quote</code></td>
-							<td style="color:#9e9e9e;">Grey</td>
+							<td style="color:#9e9e9e;" data-i18n="help_colour_grey">Grey</td>
 						</tr>
 					</tbody>
 				</table>
 
 				<div class="help-divider"></div>
 
-				<h3>Keyboard Shortcuts</h3>
+				<h3 data-i18n="help_shortcuts">Keyboard Shortcuts</h3>
 				<table class="help-table">
 					<thead>
 						<tr>
-							<th>Shortcut</th>
-							<th>Action</th>
+							<th data-i18n="help_col_shortcut">Shortcut</th>
+							<th data-i18n="help_col_action">Action</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td><code>Ctrl + B</code></td>
-							<td>Make selected text <strong>bold</strong></td>
+							<td data-i18n-html="help_shortcut_bold">Make selected text <strong>bold</strong></td>
 						</tr>
 						<tr>
 							<td><code>Ctrl + I</code></td>
-							<td>Make selected text <em>italic</em></td>
+							<td data-i18n-html="help_shortcut_italic">Make selected text <em>italic</em></td>
 						</tr>
 						<tr>
 							<td><code>Ctrl + K</code></td>
-							<td>Insert a link around selected text</td>
+							<td data-i18n="help_shortcut_link">Insert a link around selected text</td>
 						</tr>
 						<tr>
 							<td><code>Ctrl + P</code></td>
-							<td>Export to PDF</td>
+							<td data-i18n="help_shortcut_pdf">Export to PDF</td>
 						</tr>
 						<tr>
 							<td><code>Tab</code></td>
-							<td>Insert indentation (useful for lists and diagrams)</td>
+							<td data-i18n="help_shortcut_tab">Insert indentation (useful for lists and diagrams)</td>
 						</tr>
 					</tbody>
 				</table>
 
 				<div class="help-divider"></div>
 
-				<h3>Toolbar Buttons</h3>
+				<h3 data-i18n="help_toolbar_buttons">Toolbar Buttons</h3>
 				<table class="help-table">
 					<thead>
 						<tr>
-							<th>Button</th>
-							<th>What It Does</th>
+							<th data-i18n="help_col_button">Button</th>
+							<th data-i18n="help_col_does">What It Does</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
-							<td>New Document</td>
-							<td>Clears the active tab's editor content</td>
+							<td data-i18n="menu_file">File</td>
+							<td data-i18n="help_tb_new_doc">Clears the active tab's editor content</td>
 						</tr>
 						<tr>
-							<td>Import File</td>
-							<td>Load an existing <code>.md</code> or text file into the active tab</td>
+							<td data-i18n="file_upload">Upload File</td>
+							<td data-i18n-html="help_tb_import">Load an existing <code>.md</code> or text file into the active tab</td>
 						</tr>
 						<tr>
-							<td>Layout Selector</td>
-							<td>Switch between side-by-side, editor-only, or preview-only views</td>
+							<td data-i18n="view_raw_layout">Raw Layout</td>
+							<td data-i18n="help_tb_layout">Switch between side-by-side, editor-only, or preview-only views</td>
 						</tr>
 						<tr>
-							<td>Dark / Light Mode</td>
-							<td>Switches between a light and dark colour scheme</td>
+							<td data-i18n="view_dark_mode">Dark Mode</td>
+							<td data-i18n="help_tb_theme">Switches between a light and dark colour scheme</td>
 						</tr>
 						<tr>
-							<td>Export to PDF</td>
-							<td>Opens your browser's print dialogue so you can save or print the document as a PDF</td>
+							<td data-i18n="file_export_pdf">Export to PDF</td>
+							<td data-i18n="help_tb_pdf">Opens your browser's print dialogue so you can save or print the document as a PDF</td>
 						</tr>
 					</tbody>
 				</table>
 
 				<div class="help-divider"></div>
 
-				<h3>Tabs</h3>
+				<h3 data-i18n="help_tabs">Tabs</h3>
 				<table class="help-table">
 					<thead>
 						<tr>
-							<th>Action</th>
-							<th>How</th>
+							<th data-i18n="help_col_action">Action</th>
+							<th data-i18n="help_col_how">How</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
-							<td>New tab</td>
-							<td>Click the <code>+</code> button in the tab bar</td>
+							<td data-i18n="help_tab_new_short">New tab</td>
+							<td data-i18n-html="help_tab_new">Click the <code>+</code> button in the tab bar</td>
 						</tr>
 						<tr>
-							<td>Switch tab</td>
-							<td>Click on any tab</td>
+							<td data-i18n="help_tab_switch_short">Switch tab</td>
+							<td data-i18n="help_tab_switch">Click on any tab</td>
 						</tr>
 						<tr>
-							<td>Rename tab</td>
-							<td>Double-click on a tab name</td>
+							<td data-i18n="help_tab_rename_short">Rename tab</td>
+							<td data-i18n="help_tab_rename">Double-click on a tab name</td>
 						</tr>
 						<tr>
-							<td>Close tab</td>
-							<td>Click the <code>x</code> on a tab (hover to reveal)</td>
+							<td data-i18n="help_tab_close_short">Close tab</td>
+							<td data-i18n-html="help_tab_close">Click the <code>x</code> on a tab (hover to reveal)</td>
 						</tr>
 					</tbody>
 				</table>
-				<p>All tabs are saved automatically in your browser. You can have up to 10 tabs open at once.</p>
+				<p data-i18n="help_tabs_note">All tabs are saved automatically in your browser. You can have up to 10 tabs open at once.</p>
 
 				<div class="help-divider"></div>
 
-				<h3>Tips</h3>
-				<p>You can also drag and drop a <code>.md</code> file directly onto the editor area to import it. When
+				<h3 data-i18n="help_tips">Tips</h3>
+				<p data-i18n-html="help_tips_body">You can also drag and drop a <code>.md</code> file directly onto the editor area to import it. When
 					loading a template, you can choose to open it in a new tab or replace the active tab's content.</p>
 			</div>
 		</div>
@@ -786,7 +797,7 @@
 	<div class="modal-overlay" id="template-modal" onclick="closeTemplatesOnBackdrop(event)">
 		<div class="modal">
 			<div class="modal-header">
-				<h2>Choose a Template</h2>
+				<h2 data-i18n="template_title">Choose a Template</h2>
 				<button class="modal-close" onclick="toggleTemplates()" title="Close">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
 						xmlns="http://www.w3.org/2000/svg">
@@ -795,9 +806,9 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<p>Select a template below to load it into the editor. This will replace your current document.</p>
+				<p data-i18n="template_intro">Select a template below to load it into the editor. This will replace your current document.</p>
 				<div class="template-grid" id="template-list">
-					<p style="color: var(--text-muted);">Loading templates...</p>
+					<p style="color: var(--text-muted);" data-i18n="template_loading">Loading templates...</p>
 				</div>
 			</div>
 		</div>
@@ -806,13 +817,13 @@
 	<!-- Load Mode Modal (New Tab or Replace) -->
 	<div class="load-mode-overlay" id="load-mode-modal" onclick="if(event.target===this)closeLoadMode()">
 		<div class="load-mode-box">
-			<h3>Load Template</h3>
-			<p id="load-mode-desc">How would you like to load this template?</p>
+			<h3 data-i18n="load_title">Load Template</h3>
+			<p id="load-mode-desc" data-i18n="load_desc">How would you like to load this template?</p>
 			<div class="load-mode-actions">
-				<button class="btn btn-primary" id="load-mode-new" onclick="doLoadTemplate('new')">Open in New
+				<button class="btn btn-primary" id="load-mode-new" onclick="doLoadTemplate('new')" data-i18n="load_new_tab">Open in New
 					Tab</button>
-				<button class="btn" id="load-mode-replace" onclick="doLoadTemplate('replace')">Replace Current</button>
-				<button class="btn" onclick="closeLoadMode()">Cancel</button>
+				<button class="btn" id="load-mode-replace" onclick="doLoadTemplate('replace')" data-i18n="load_replace">Replace Current</button>
+				<button class="btn" onclick="closeLoadMode()" data-i18n="btn_cancel">Cancel</button>
 			</div>
 		</div>
 	</div>
@@ -821,13 +832,13 @@
 	<div class="load-mode-overlay" id="print-tip-modal"
 		onclick="if(event.target===this)this.classList.remove('active')">
 		<div class="load-mode-box" style="max-width: 400px;">
-			<h3>PDF Export Tip</h3>
-			<p style="margin-bottom: 16px;">For the cleanest, most professional PDF exports (especially in Firefox),
+			<h3 data-i18n="print_tip_title">PDF Export Tip</h3>
+			<p style="margin-bottom: 16px;" data-i18n-html="print_tip_body">For the cleanest, most professional PDF exports (especially in Firefox),
 				please expand <strong>More Settings</strong> in the print dialogue and <strong>uncheck "Print Headers
 					and Footers"</strong>.</p>
 			<div class="load-mode-actions">
 				<button class="btn btn-primary"
-					onclick="document.getElementById('print-tip-modal').classList.remove('active')">Got it!</button>
+					onclick="document.getElementById('print-tip-modal').classList.remove('active')" data-i18n="btn_got_it">Got it!</button>
 			</div>
 		</div>
 	</div>
@@ -836,19 +847,19 @@
 	<div class="load-mode-overlay" id="save-info-modal"
 		onclick="if(event.target===this)this.classList.remove('active')">
 		<div class="load-mode-box" style="max-width: 440px; text-align: left;">
-			<h3 style="text-align: center;">How Saving Works</h3>
-			<p style="margin-bottom: 12px;"><strong>Your data is private.</strong> Nothing you type here is ever sent to
+			<h3 style="text-align: center;" data-i18n="save_title">How Saving Works</h3>
+			<p style="margin-bottom: 12px;" data-i18n-html="save_body_1"><strong>Your data is private.</strong> Nothing you type here is ever sent to
 				or stored on our servers.</p>
-			<p style="margin-bottom: 12px;">Instead, your documents are automatically saved directly into your browser's
+			<p style="margin-bottom: 12px;" data-i18n="save_body_2">Instead, your documents are automatically saved directly into your browser's
 				local cache (localStorage). This means if you accidentally close the tab or refresh the page, your work
 				will still be here when you return.</p>
-			<p style="margin-bottom: 20px;"><strong>However, to permanently save or share a document</strong>, you must
+			<p style="margin-bottom: 20px;" data-i18n-html="save_body_3"><strong>However, to permanently save or share a document</strong>, you must
 				export it. You can either export the raw `.md` text file or export it as a formatted PDF using the
 				buttons in the top right.</p>
 			<div class="load-mode-actions">
 				<button class="btn btn-primary"
 					onclick="document.getElementById('save-info-modal').classList.remove('active')"
-					style="width: 100%;">Understood</button>
+					style="width: 100%;" data-i18n="btn_understood">Understood</button>
 			</div>
 		</div>
 	</div>
@@ -857,18 +868,18 @@
 	<div class="load-mode-overlay" id="clear-cache-modal"
 		onclick="if(event.target===this)this.classList.remove('active')">
 		<div class="load-mode-box" style="max-width: 440px; text-align: left;">
-			<h3 style="text-align: center; color: #ef4444;">Clear All Saved Data</h3>
-			<p style="margin-bottom: 12px;">This will <strong>permanently delete</strong> all your saved documents, tabs,
+			<h3 style="text-align: center; color: #ef4444;" data-i18n="clear_title">Clear All Saved Data</h3>
+			<p style="margin-bottom: 12px;" data-i18n-html="clear_body_1">This will <strong>permanently delete</strong> all your saved documents, tabs,
 				theme preferences, and editor settings from this browser.</p>
-			<p style="margin-bottom: 12px;">After clearing, the application will reload as if you are visiting for the
+			<p style="margin-bottom: 12px;" data-i18n-html="clear_body_2">After clearing, the application will reload as if you are visiting for the
 				first time. <strong>This cannot be undone.</strong></p>
-			<p style="margin-bottom: 20px;">If you have unsaved work, please download your files first using
+			<p style="margin-bottom: 20px;" data-i18n-html="clear_body_3">If you have unsaved work, please download your files first using
 				<strong>File > Download File</strong> or <strong>Export to PDF</strong> before proceeding.</p>
 			<div class="load-mode-actions" style="gap: 8px;">
 				<button class="btn" style="flex: 1;"
-					onclick="document.getElementById('clear-cache-modal').classList.remove('active')">Cancel</button>
+					onclick="document.getElementById('clear-cache-modal').classList.remove('active')" data-i18n="btn_cancel">Cancel</button>
 				<button class="btn" style="flex: 1; background: #ef4444; color: #ffffff; border-color: #ef4444;"
-					onclick="clearAllCache()">Clear Everything</button>
+					onclick="clearAllCache()" data-i18n="btn_clear_everything">Clear Everything</button>
 			</div>
 		</div>
 	</div>
@@ -877,7 +888,7 @@
 	<div class="convert-progress-overlay" id="convert-progress-modal">
 		<div class="convert-progress-box">
 			<div class="convert-spinner"></div>
-			<p class="convert-progress-label">Converting to Markdown</p>
+			<p class="convert-progress-label" data-i18n="converting">Converting to Markdown</p>
 			<p class="convert-progress-filename" id="convert-progress-filename"></p>
 		</div>
 	</div>
@@ -885,26 +896,26 @@
 	<!-- Find & Replace Bar -->
 	<div class="find-bar" id="find-bar">
 		<div class="find-bar-row">
-			<input type="text" id="find-input" class="find-input" placeholder="Find..." spellcheck="false" autocomplete="off">
+			<input type="text" id="find-input" class="find-input" placeholder="查找..." spellcheck="false" autocomplete="off" data-i18n-placeholder="find_placeholder">
 			<span class="find-count" id="find-count">0 / 0</span>
-			<button class="find-btn" id="find-prev" onclick="findPrev()" title="Previous (Shift+Enter)">
+			<button class="find-btn" id="find-prev" onclick="findPrev()" title="Previous (Shift+Enter)" data-i18n-title="find_prev_title">
 				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg>
 			</button>
-			<button class="find-btn" id="find-next" onclick="findNext()" title="Next (Enter)">
+			<button class="find-btn" id="find-next" onclick="findNext()" title="Next (Enter)" data-i18n-title="find_next_title">
 				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
 			</button>
-			<button class="find-btn find-btn-toggle" id="find-case-btn" onclick="toggleFindCase()" title="Match Case">Aa</button>
-			<button class="find-btn find-btn-toggle" id="find-replace-toggle" onclick="toggleReplaceRow()" title="Toggle Replace">
+			<button class="find-btn find-btn-toggle" id="find-case-btn" onclick="toggleFindCase()" title="Match Case" data-i18n-title="find_match_case">Aa</button>
+			<button class="find-btn find-btn-toggle" id="find-replace-toggle" onclick="toggleReplaceRow()" title="Toggle Replace" data-i18n-title="find_toggle_replace">
 				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
 			</button>
-			<button class="find-btn" onclick="closeFindBar()" title="Close (Escape)">
+			<button class="find-btn" onclick="closeFindBar()" title="Close (Escape)" data-i18n-title="find_close_title">
 				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
 			</button>
 		</div>
 		<div class="find-bar-row find-replace-row" id="find-replace-row" style="display:none;">
-			<input type="text" id="replace-input" class="find-input" placeholder="Replace with..." spellcheck="false" autocomplete="off">
-			<button class="find-btn find-btn-action" onclick="replaceOne()" title="Replace">Replace</button>
-			<button class="find-btn find-btn-action" onclick="replaceAll()" title="Replace All">All</button>
+			<input type="text" id="replace-input" class="find-input" placeholder="替换为..." spellcheck="false" autocomplete="off" data-i18n-placeholder="replace_placeholder">
+			<button class="find-btn find-btn-action" onclick="replaceOne()" title="Replace" data-i18n-title="find_replace_title" data-i18n="find_replace_title">Replace</button>
+			<button class="find-btn find-btn-action" onclick="replaceAll()" title="Replace All" data-i18n-title="find_all_title" data-i18n="find_all_title">All</button>
 		</div>
 	</div>
 
@@ -918,7 +929,7 @@
 				<line x1="14.47" y1="14.48" x2="20" y2="20" />
 				<line x1="8.12" y1="8.12" x2="12" y2="12" />
 			</svg>
-			<span class="ctx-label">Cut</span>
+			<span class="ctx-label" data-i18n="ctx_cut">Cut</span>
 			<span class="ctx-shortcut">Ctrl+X</span>
 		</div>
 		<div class="context-menu-item" onclick="ctxCopy()">
@@ -926,7 +937,7 @@
 				<rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
 				<path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
 			</svg>
-			<span class="ctx-label">Copy</span>
+			<span class="ctx-label" data-i18n="ctx_copy">Copy</span>
 			<span class="ctx-shortcut">Ctrl+C</span>
 		</div>
 		<div class="context-menu-item" onclick="ctxPaste()">
@@ -934,7 +945,7 @@
 				<path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
 				<rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
 			</svg>
-			<span class="ctx-label">Paste</span>
+			<span class="ctx-label" data-i18n="ctx_paste">Paste</span>
 			<span class="ctx-shortcut">Ctrl+V</span>
 		</div>
 		<div class="context-menu-separator"></div>
@@ -943,7 +954,7 @@
 				<path stroke-linecap="round" stroke-linejoin="round"
 					d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
 			</svg>
-			<span class="ctx-label">Create Link</span>
+			<span class="ctx-label" data-i18n="ctx_create_link">Create Link</span>
 			<span class="ctx-shortcut">Ctrl+K</span>
 		</div>
 		<div class="context-menu-separator"></div>
@@ -952,7 +963,7 @@
 				<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" d="M4 7V4h16v3M9 20h6M12 4v16" />
 				</svg>
-				<span class="ctx-label">Format</span>
+				<span class="ctx-label" data-i18n="ctx_format">Format</span>
 				<span class="ctx-arrow">&#9654;</span>
 			</div>
 			<div class="context-submenu" id="ctx-submenu-format">
@@ -960,7 +971,7 @@
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path d="M6 4h8a4 4 0 010 8H6zm0 8h9a4 4 0 010 8H6z" />
 					</svg>
-					<span class="ctx-label">Bold</span>
+					<span class="ctx-label" data-i18n="tt_bold">Bold</span>
 					<span class="ctx-shortcut">Ctrl+B</span>
 				</div>
 				<div class="context-menu-item" onclick="ctxItalic()">
@@ -968,7 +979,7 @@
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M10 4h4m2 0h-2M14 4l-4 16m-4 0h4m-2 0h-2" />
 					</svg>
-					<span class="ctx-label">Italic</span>
+					<span class="ctx-label" data-i18n="tt_italic">Italic</span>
 					<span class="ctx-shortcut">Ctrl+I</span>
 				</div>
 			</div>
@@ -979,7 +990,7 @@
 					<path stroke-linecap="round" stroke-linejoin="round"
 						d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
 				</svg>
-				<span class="ctx-label">Paragraph</span>
+				<span class="ctx-label" data-i18n="ctx_paragraph">Paragraph</span>
 				<span class="ctx-arrow">&#9654;</span>
 			</div>
 			<div class="context-submenu" id="ctx-submenu-paragraph">
@@ -988,21 +999,21 @@
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
 					</svg>
-					<span class="ctx-label">Bullet List</span>
+					<span class="ctx-label" data-i18n="tt_bullet">Bullet List</span>
 				</div>
 				<div class="context-menu-item" onclick="ctxNumberedList()">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M8.242 5.992h12m-12 6.003h12m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 111.591 1.59l-1.83 1.83h2.16" />
 					</svg>
-					<span class="ctx-label">Numbered List</span>
+					<span class="ctx-label" data-i18n="tt_numbered">Numbered List</span>
 				</div>
 				<div class="context-menu-item" onclick="ctxTaskList()">
 					<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round"
 							d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
-					<span class="ctx-label">Task List</span>
+					<span class="ctx-label" data-i18n="ctx_task_list">Task List</span>
 				</div>
 			</div>
 		</div>
@@ -1010,6 +1021,9 @@
 
 	<!-- Decoupled JavaScript Logic -->
 	<script src="/app.js"></script>
-</body>
+	<script>
+		// Apply saved language to all static text now that the DOM and app.js are ready.
+		applyTranslations(currentLang());
+	</script></body>
 
 </html>
